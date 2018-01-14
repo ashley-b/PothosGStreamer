@@ -1,0 +1,964 @@
+{
+    "globals": [
+        {
+            "name": "caps",
+            "value": "\"video/x-raw,format=(string)I420,width=(int)800,height=(int)600,framerate=(fraction)30/1,pixel-aspect-ratio=(fraction)1/1,interlace-mode=(string)progressive\""
+        }
+    ],
+    "pages": [
+        {
+            "graphObjects": [
+                {
+                    "affinityZone": "",
+                    "enabled": true,
+                    "id": "GStreamerWrapper0",
+                    "inputDesc": [
+                        {
+                            "alias": "probeGetCurrentBufferCount_appsink",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "probeGetCurrentBufferCount_appsink",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setState",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setState",
+                            "size": 1
+                        },
+                        {
+                            "alias": "probeGetPipelineLatency",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "probeGetPipelineLatency",
+                            "size": 1
+                        },
+                        {
+                            "alias": "probeGetPipelinePosition",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "probeGetPipelinePosition",
+                            "size": 1
+                        },
+                        {
+                            "alias": "probeGetPipelineDuration",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "probeGetPipelineDuration",
+                            "size": 1
+                        }
+                    ],
+                    "outputDesc": [
+                        {
+                            "alias": "appsink",
+                            "dtype": "unspecified",
+                            "isSigSlot": false,
+                            "name": "appsink",
+                            "size": 1
+                        },
+                        {
+                            "alias": "getCurrentBufferCount_appsinkTriggered",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "getCurrentBufferCount_appsinkTriggered",
+                            "size": 1
+                        },
+                        {
+                            "alias": "bus",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "bus",
+                            "size": 1
+                        },
+                        {
+                            "alias": "busTag",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "busTag",
+                            "size": 1
+                        },
+                        {
+                            "alias": "eos",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "eos",
+                            "size": 1
+                        },
+                        {
+                            "alias": "getPipelineLatencyTriggered",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "getPipelineLatencyTriggered",
+                            "size": 1
+                        },
+                        {
+                            "alias": "getPipelinePositionTriggered",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "getPipelinePositionTriggered",
+                            "size": 1
+                        },
+                        {
+                            "alias": "getPipelineDurationTriggered",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "getPipelineDurationTriggered",
+                            "size": 1
+                        }
+                    ],
+                    "path": "/media/gstreamer",
+                    "positionX": 149.66666666666674,
+                    "positionY": 163.66666666666674,
+                    "properties": [
+                        {
+                            "key": "pipelineString",
+                            "value": "\"videotestsrc is-live=true ! \" // caps // \" ! appsink name=appsink\""
+                        },
+                        {
+                            "key": "state",
+                            "value": "\"PLAY\""
+                        }
+                    ],
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Block",
+                    "zValue": 300
+                },
+                {
+                    "affinityZone": "",
+                    "enabled": true,
+                    "id": "GStreamerWrapper1",
+                    "inputDesc": [
+                        {
+                            "alias": "appsrc",
+                            "dtype": "unspecified",
+                            "isSigSlot": false,
+                            "name": "appsrc",
+                            "size": 1
+                        },
+                        {
+                            "alias": "probeGetCurrentLevelBytes_appsrc",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "probeGetCurrentLevelBytes_appsrc",
+                            "size": 1
+                        },
+                        {
+                            "alias": "sendEos_appsrc",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "sendEos_appsrc",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setState",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setState",
+                            "size": 1
+                        },
+                        {
+                            "alias": "probeGetPipelineLatency",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "probeGetPipelineLatency",
+                            "size": 1
+                        },
+                        {
+                            "alias": "probeGetPipelinePosition",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "probeGetPipelinePosition",
+                            "size": 1
+                        },
+                        {
+                            "alias": "probeGetPipelineDuration",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "probeGetPipelineDuration",
+                            "size": 1
+                        }
+                    ],
+                    "outputDesc": [
+                        {
+                            "alias": "getCurrentLevelBytes_appsrcTriggered",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "getCurrentLevelBytes_appsrcTriggered",
+                            "size": 1
+                        },
+                        {
+                            "alias": "bus",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "bus",
+                            "size": 1
+                        },
+                        {
+                            "alias": "busTag",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "busTag",
+                            "size": 1
+                        },
+                        {
+                            "alias": "eos",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "eos",
+                            "size": 1
+                        },
+                        {
+                            "alias": "getPipelineLatencyTriggered",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "getPipelineLatencyTriggered",
+                            "size": 1
+                        },
+                        {
+                            "alias": "getPipelinePositionTriggered",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "getPipelinePositionTriggered",
+                            "size": 1
+                        },
+                        {
+                            "alias": "getPipelineDurationTriggered",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "getPipelineDurationTriggered",
+                            "size": 1
+                        }
+                    ],
+                    "path": "/media/gstreamer",
+                    "positionX": 690,
+                    "positionY": 163,
+                    "properties": [
+                        {
+                            "key": "pipelineString",
+                            "value": "\"appsrc is-live=true name=appsrc caps=\" // caps // \" ! fpsdisplaysink\""
+                        },
+                        {
+                            "key": "state",
+                            "value": "\"PLAY\""
+                        }
+                    ],
+                    "rotation": 0,
+                    "selected": true,
+                    "what": "Block",
+                    "zValue": 302
+                },
+                {
+                    "affinityZone": "",
+                    "enabled": true,
+                    "id": "MessagePrinter0",
+                    "inputDesc": [
+                        {
+                            "alias": "0",
+                            "dtype": "unspecified",
+                            "isSigSlot": false,
+                            "name": "0",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setDestination",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setDestination",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setSourceName",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setSourceName",
+                            "size": 1
+                        }
+                    ],
+                    "path": "/blocks/message_printer",
+                    "positionX": 1134,
+                    "positionY": 113,
+                    "properties": [
+                        {
+                            "key": "dest",
+                            "value": "\"INFORMATION\""
+                        },
+                        {
+                            "key": "srcName",
+                            "value": "\"\""
+                        }
+                    ],
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Block",
+                    "zValue": 275
+                },
+                {
+                    "affinityZone": "",
+                    "enabled": false,
+                    "id": "MessagePrinter1",
+                    "inputDesc": [
+                        {
+                            "alias": "0",
+                            "dtype": "unspecified",
+                            "isSigSlot": false,
+                            "name": "0",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setDestination",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setDestination",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setSourceName",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setSourceName",
+                            "size": 1
+                        }
+                    ],
+                    "path": "/blocks/message_printer",
+                    "positionX": 484,
+                    "positionY": 480,
+                    "properties": [
+                        {
+                            "key": "dest",
+                            "value": "\"INFORMATION\""
+                        },
+                        {
+                            "key": "srcName",
+                            "value": "\"\""
+                        }
+                    ],
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Block",
+                    "zValue": 286
+                },
+                {
+                    "affinityZone": "",
+                    "enabled": true,
+                    "id": "PeriodicTrigger0",
+                    "inputDesc": [
+                        {
+                            "alias": "setRate",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setRate",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setArgs",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setArgs",
+                            "size": 1
+                        }
+                    ],
+                    "outputDesc": [
+                        {
+                            "alias": "triggered",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "triggered",
+                            "size": 1
+                        }
+                    ],
+                    "path": "/blocks/periodic_trigger",
+                    "positionX": 105,
+                    "positionY": 294,
+                    "properties": [
+                        {
+                            "key": "rate",
+                            "value": "10.0"
+                        },
+                        {
+                            "key": "args",
+                            "value": "[]"
+                        }
+                    ],
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Block",
+                    "zValue": 292
+                },
+                {
+                    "affinityZone": "",
+                    "enabled": true,
+                    "id": "TextDisplay0",
+                    "inputDesc": [
+                        {
+                            "alias": "setTitle",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setTitle",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setFormatStr",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setFormatStr",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setBase",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setBase",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setStringValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setStringValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setFloatValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setFloatValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setComplexValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setComplexValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setIntValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setIntValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setValue",
+                            "size": 1
+                        }
+                    ],
+                    "path": "/widgets/text_display",
+                    "positionX": 153,
+                    "positionY": 53,
+                    "properties": [
+                        {
+                            "key": "title",
+                            "value": "\"AppSink Buffer Count\""
+                        },
+                        {
+                            "key": "formatStr",
+                            "value": "\"%1\""
+                        },
+                        {
+                            "key": "base",
+                            "value": "10"
+                        }
+                    ],
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Block",
+                    "zValue": 220
+                },
+                {
+                    "affinityZone": "",
+                    "enabled": true,
+                    "id": "TextDisplay_currentLevelBytes",
+                    "inputDesc": [
+                        {
+                            "alias": "setTitle",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setTitle",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setFormatStr",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setFormatStr",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setBase",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setBase",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setStringValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setStringValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setFloatValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setFloatValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setComplexValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setComplexValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setIntValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setIntValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setValue",
+                            "size": 1
+                        }
+                    ],
+                    "path": "/widgets/text_display",
+                    "positionX": 805,
+                    "positionY": 529,
+                    "properties": [
+                        {
+                            "key": "title",
+                            "value": "\"Current Level Bytes\""
+                        },
+                        {
+                            "key": "formatStr",
+                            "value": "\"%1\""
+                        },
+                        {
+                            "key": "base",
+                            "value": "10"
+                        }
+                    ],
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Block",
+                    "zValue": 148
+                },
+                {
+                    "affinityZone": "",
+                    "enabled": true,
+                    "id": "TextDisplay_latencySink",
+                    "inputDesc": [
+                        {
+                            "alias": "setTitle",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setTitle",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setFormatStr",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setFormatStr",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setBase",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setBase",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setStringValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setStringValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setFloatValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setFloatValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setComplexValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setComplexValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setIntValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setIntValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setValue",
+                            "size": 1
+                        }
+                    ],
+                    "path": "/widgets/text_display",
+                    "positionX": 116,
+                    "positionY": 494,
+                    "properties": [
+                        {
+                            "key": "title",
+                            "value": "\"Latency Sink\""
+                        },
+                        {
+                            "key": "formatStr",
+                            "value": "\"%1\""
+                        },
+                        {
+                            "key": "base",
+                            "value": "10"
+                        }
+                    ],
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Block",
+                    "zValue": 240
+                },
+                {
+                    "affinityZone": "",
+                    "enabled": true,
+                    "id": "TextDisplay_latencySource",
+                    "inputDesc": [
+                        {
+                            "alias": "setTitle",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setTitle",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setFormatStr",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setFormatStr",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setBase",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setBase",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setStringValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setStringValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setFloatValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setFloatValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setComplexValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setComplexValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setIntValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setIntValue",
+                            "size": 1
+                        },
+                        {
+                            "alias": "setValue",
+                            "dtype": "unspecified",
+                            "isSigSlot": true,
+                            "name": "setValue",
+                            "size": 1
+                        }
+                    ],
+                    "path": "/widgets/text_display",
+                    "positionX": 925,
+                    "positionY": 396,
+                    "properties": [
+                        {
+                            "key": "title",
+                            "value": "\"Latency Source\""
+                        },
+                        {
+                            "key": "formatStr",
+                            "value": "\"%1\""
+                        },
+                        {
+                            "key": "base",
+                            "value": "10"
+                        }
+                    ],
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Block",
+                    "zValue": 164
+                },
+                {
+                    "enabled": true,
+                    "id": "Connection_GStreamerWrapper0",
+                    "positionX": 0,
+                    "positionY": 0,
+                    "rotation": 0,
+                    "selected": false,
+                    "sigSlots": [
+                        [
+                            "getPipelineLatencyTriggered",
+                            "setValue"
+                        ]
+                    ],
+                    "signalId": "GStreamerWrapper0",
+                    "signalKey": "signals",
+                    "slotId": "TextDisplay_latencySink",
+                    "slotKey": "slots",
+                    "what": "Connection",
+                    "zValue": 0
+                },
+                {
+                    "enabled": true,
+                    "id": "Connection_GStreamerWrapper0appsink_GStreamerWrapper1",
+                    "inputId": "GStreamerWrapper1",
+                    "inputKey": "appsrc",
+                    "outputId": "GStreamerWrapper0",
+                    "outputKey": "appsink",
+                    "positionX": 0,
+                    "positionY": 0,
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Connection",
+                    "zValue": 0
+                },
+                {
+                    "enabled": true,
+                    "id": "Connection_GStreamerWrapper0signals_MessagePrinter10",
+                    "inputId": "MessagePrinter1",
+                    "inputKey": "0",
+                    "positionX": 0,
+                    "positionY": 0,
+                    "rotation": 0,
+                    "selected": false,
+                    "sigSlots": [
+                        [
+                            "bus",
+                            "0"
+                        ]
+                    ],
+                    "signalId": "GStreamerWrapper0",
+                    "signalKey": "signals",
+                    "what": "Connection",
+                    "zValue": 270
+                },
+                {
+                    "enabled": true,
+                    "id": "Connection_GStreamerWrapper0signals_TextDisplay0",
+                    "positionX": 0,
+                    "positionY": 0,
+                    "rotation": 0,
+                    "selected": false,
+                    "sigSlots": [
+                        [
+                            "getCurrentBufferCount_appsinkTriggered",
+                            "setValue"
+                        ]
+                    ],
+                    "signalId": "GStreamerWrapper0",
+                    "signalKey": "signals",
+                    "slotId": "TextDisplay0",
+                    "slotKey": "slots",
+                    "what": "Connection",
+                    "zValue": 294
+                },
+                {
+                    "enabled": true,
+                    "id": "Connection_GStreamerWrapper1",
+                    "positionX": 0,
+                    "positionY": 0,
+                    "rotation": 0,
+                    "selected": false,
+                    "sigSlots": [
+                        [
+                            "getPipelineLatencyTriggered",
+                            "setValue"
+                        ]
+                    ],
+                    "signalId": "GStreamerWrapper1",
+                    "signalKey": "signals",
+                    "slotId": "TextDisplay_latencySource",
+                    "slotKey": "slots",
+                    "what": "Connection",
+                    "zValue": 0
+                },
+                {
+                    "enabled": true,
+                    "id": "Connection_GStreamerWrapper1signals_MessagePrinter00",
+                    "inputId": "MessagePrinter0",
+                    "inputKey": "0",
+                    "positionX": 0,
+                    "positionY": 0,
+                    "rotation": 0,
+                    "selected": false,
+                    "sigSlots": [
+                        [
+                            "bus",
+                            "0"
+                        ]
+                    ],
+                    "signalId": "GStreamerWrapper1",
+                    "signalKey": "signals",
+                    "what": "Connection",
+                    "zValue": 0
+                },
+                {
+                    "enabled": true,
+                    "id": "Connection_GStreamerWrapper1signals_TextDisplay0",
+                    "positionX": 0,
+                    "positionY": 0,
+                    "rotation": 0,
+                    "selected": false,
+                    "sigSlots": [
+                        [
+                            "getCurrentLevelBytes_appsrcTriggered",
+                            "setValue"
+                        ]
+                    ],
+                    "signalId": "GStreamerWrapper1",
+                    "signalKey": "signals",
+                    "slotId": "TextDisplay_currentLevelBytes",
+                    "slotKey": "slots",
+                    "what": "Connection",
+                    "zValue": 296
+                },
+                {
+                    "enabled": true,
+                    "id": "Connection_PeriodicTrigger0signals_GStreamerWrapper0",
+                    "positionX": 0,
+                    "positionY": 0,
+                    "rotation": 0,
+                    "selected": false,
+                    "sigSlots": [
+                        [
+                            "triggered",
+                            "probeGetPipelineLatency"
+                        ],
+                        [
+                            "triggered",
+                            "probeGetCurrentBufferCount_appsink"
+                        ]
+                    ],
+                    "signalId": "PeriodicTrigger0",
+                    "signalKey": "signals",
+                    "slotId": "GStreamerWrapper0",
+                    "slotKey": "slots",
+                    "what": "Connection",
+                    "zValue": 293
+                },
+                {
+                    "enabled": true,
+                    "id": "Connection_PeriodicTrigger0signals_GStreamerWrapper1",
+                    "positionX": 0,
+                    "positionY": 0,
+                    "rotation": 0,
+                    "selected": false,
+                    "sigSlots": [
+                        [
+                            "triggered",
+                            "probeGetPipelineLatency"
+                        ],
+                        [
+                            "triggered",
+                            "probeGetCurrentLevelBytes_appsrc"
+                        ]
+                    ],
+                    "signalId": "PeriodicTrigger0",
+                    "signalKey": "signals",
+                    "slotId": "GStreamerWrapper1",
+                    "slotKey": "slots",
+                    "what": "Connection",
+                    "zValue": 295
+                },
+                {
+                    "blockId": "TextDisplay_currentLevelBytes",
+                    "enabled": true,
+                    "height": 28,
+                    "id": "WidgetTextDisplay0",
+                    "positionX": 750,
+                    "positionY": 557,
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Widget",
+                    "width": 317,
+                    "zValue": 212
+                },
+                {
+                    "blockId": "TextDisplay0",
+                    "enabled": true,
+                    "height": 28,
+                    "id": "WidgetTextDisplay1",
+                    "positionX": 248,
+                    "positionY": 35,
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Widget",
+                    "width": 186,
+                    "zValue": 221
+                },
+                {
+                    "blockId": "TextDisplay_latencySink",
+                    "enabled": true,
+                    "height": 28,
+                    "id": "WidgetTextDisplay_latency0",
+                    "positionX": 56,
+                    "positionY": 542,
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Widget",
+                    "width": 587,
+                    "zValue": 279
+                },
+                {
+                    "blockId": "TextDisplay_latencySource",
+                    "enabled": true,
+                    "height": 32,
+                    "id": "WidgetTextDisplay_latencySource0",
+                    "positionX": 813,
+                    "positionY": 427,
+                    "rotation": 0,
+                    "selected": false,
+                    "what": "Widget",
+                    "width": 656,
+                    "zValue": 209
+                }
+            ],
+            "pageName": "Main",
+            "selected": true
+        }
+    ]
+}
