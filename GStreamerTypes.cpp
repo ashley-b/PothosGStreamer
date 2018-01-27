@@ -140,7 +140,7 @@ namespace GstTypes
 
         auto gstBuffer = makeSharedGStreamerBuffer(bufferChunk->as< void* >(), bufferChunk->length, bufferChunk);
 
-        if ( gstBuffer == NULL )
+        if ( gstBuffer == nullptr )
         {
             // Could not allocate buffer.... bail
             poco_error( GstTypes::logger(), funcName + " Could not alloc buffer of size = " + std::to_string( packet.payload.length ) );
@@ -527,7 +527,7 @@ namespace GstTypes
         {
             if (num > 1)
             {
-                poco_warning(GstTypes::logger(), "convert_tag: tag \"" + std::string(tag) + "\" is fixed and size is > 1, this should never happen.");
+                poco_warning(GstTypes::logger(), std::string("convert_tag: tag \"") + tag + "\" is fixed and size is > 1, this should never happen.");
             }
 
             const GValue *g_val = gst_tag_list_get_value_index( list, tag, 0 );

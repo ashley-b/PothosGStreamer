@@ -14,7 +14,7 @@ PKG_CHECK_MODULES(PC_GSTREAMER REQUIRED
     gstreamer-${GST_VER}
     gstreamer-app-${GST_VER}
     gstreamer-audio-${GST_VER}
- )
+)
 
 find_program(pothos_util PothosUtil)
 if (pothos_util)

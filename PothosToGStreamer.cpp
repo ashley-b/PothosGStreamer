@@ -65,7 +65,7 @@ namespace
                 &seek_data,
                 { }
             };
-            gst_app_src_set_callbacks( m_gstAppSource, &gstAppSrcCallbacks, this, NULL);
+            gst_app_src_set_callbacks( m_gstAppSource, &gstAppSrcCallbacks, this, nullptr);
 
             /* Our GstAppSrc can only stream from Pothos, can't seek */
             gst_app_src_set_stream_type( m_gstAppSource, GST_APP_STREAM_TYPE_STREAM );
@@ -75,20 +75,20 @@ namespace
     //          "format",       "GST_FORMAT_TIME",
                 "block",        FALSE,              /* We can't block in Pothos work() method */
                 "do-timestamp", TRUE,               /* Get GstAppSrc to time stamp our buffers */
-                NULL                                /* List termination */
+                nullptr                             /* List termination */
             );
         }
 
         ~PothosToGStreamerRunState(void)
         {
-            // Disconnect callback
+            // Disconnect callbacks
             GstAppSrcCallbacks gstAppSrcCallbacks{
                 nullptr,
                 nullptr,
                 nullptr,
                 { }
             };
-            gst_app_src_set_callbacks( m_gstAppSource, &gstAppSrcCallbacks, this, NULL);
+            gst_app_src_set_callbacks( m_gstAppSource, &gstAppSrcCallbacks, this, nullptr);
 
             sendEos();
             if ( m_baseCaps != nullptr )
@@ -123,7 +123,7 @@ namespace
 
         bool needData(void) const
         {
-            return m_needData.operator bool();
+            return m_needData.load();
         }
 
         bool tag_send_app_data_once(void)
@@ -188,9 +188,7 @@ namespace
             }
         }
 
-        ~PothosToGStreamerImpl(void)
-        {
-        }
+        ~PothosToGStreamerImpl(void) = default;
 
         const std::string& getTagAppData(void) const
         {
@@ -217,7 +215,7 @@ namespace
         {
             GstTagList *gstTagList = gst_tag_list_new(
                 GST_TAG_APPLICATION_NAME, "Pothos",
-                NULL
+                nullptr
             );
 
             // If we have a string for GST_TAG_APPLICATION_DATA lets convert it and send it
@@ -360,13 +358,15 @@ namespace
 
 }
 
-GStreamerSubWorker* PothosToGStreamer::makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement)
+std::unique_ptr< GStreamerSubWorker > PothosToGStreamer::makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement)
 {
     if ( GST_IS_APP_SRC( gstElement ) )
     {
-        return new PothosToGStreamerImpl(
-            gstreamerBlock,
-            reinterpret_cast< GstAppSrc* >( gstElement )
+        return std::unique_ptr< GStreamerSubWorker >(
+            new PothosToGStreamerImpl(
+                gstreamerBlock,
+                reinterpret_cast< GstAppSrc* >( gstElement )
+            )
         );
     }
     return nullptr;

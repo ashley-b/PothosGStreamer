@@ -144,7 +144,7 @@ namespace
             gst_object_ref( GST_OBJECT( m_gstAppSink ) );
             g_object_set( m_gstAppSink,
                 "max-buffers",      20,   /* Limit number of buffer to queue (Provent memory runaway). */
-                 NULL                     /* List termination */
+                 nullptr                  /* List termination */
             );
             GstAppSinkCallbacks gstAppSinkCallbacks{
                 &eos,
@@ -257,9 +257,7 @@ namespace
             }
         }
 
-        ~GStreamerToPothosImpl(void)
-        {
-        }
+        ~GStreamerToPothosImpl(void) = default;
 
         uint32_t getCurrentBufferCount()
         {
@@ -288,7 +286,7 @@ namespace
 
             GstSample *gst_sample = m_runState->try_pull_sample( maxTimeoutNs * GST_NSECOND );
 
-            if ( gst_sample != NULL )
+            if ( gst_sample != nullptr )
             {
                 // Get GStreamer buffer and create Pothos packet from it
                 GstBuffer *gst_buffer = gst_sample_get_buffer( gst_sample );
@@ -321,13 +319,15 @@ namespace
 
 }
 
-GStreamerSubWorker* GStreamerToPothos::makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement)
+std::unique_ptr< GStreamerSubWorker > GStreamerToPothos::makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement)
 {
     if ( GST_IS_APP_SINK( gstElement ) )
     {
-        return new GStreamerToPothosImpl(
-            gstreamerBlock,
-            reinterpret_cast< GstAppSink* >( gstElement )
+        return std::unique_ptr< GStreamerSubWorker >(
+            new GStreamerToPothosImpl(
+                gstreamerBlock,
+                reinterpret_cast< GstAppSink* >( gstElement )
+            )
         );
     }
     return nullptr;

@@ -23,7 +23,7 @@ namespace {  // anonymous namespace
             // Run GStreamer registry update in this thread
             gst_registry_fork_set_enabled( false );
 
-            if (  !gst_init_check( NULL, NULL, GstTypes::uniquePtrRef( initError ) ) )
+            if (  !gst_init_check( nullptr, nullptr, GstTypes::uniquePtrRef( initError ) ) )
             {
                GstTypes::logger().error( "GStreamerStatic::GStreamerStatic(): gst_init_check error: " + GstTypes::gerrorToString( initError.get() ) );
             }

@@ -5,8 +5,9 @@
 
 #include "GStreamerSubWorker.hpp"
 #include <gst/gstelement.h>
+#include <memory>
 
 namespace GStreamerToPothos
 {
-    GStreamerSubWorker* makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement);
+    std::unique_ptr< GStreamerSubWorker > makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement);
 }  // namespace GStreamerToPothos

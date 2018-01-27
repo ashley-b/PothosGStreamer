@@ -21,7 +21,7 @@ protected:
     GStreamerSubWorker(GStreamer *gstreamerBlock, const std::string &name);
 
 public:
-    virtual ~GStreamerSubWorker(void);
+    virtual ~GStreamerSubWorker(void) = default;
 
     GStreamer* gstreamerBlock(void) const;
     const std::string& name(void) const;

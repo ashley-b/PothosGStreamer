@@ -129,18 +129,18 @@ void GStreamer::for_each_pipeline_element(const GValue *value, gpointer data)
 
     {
         auto PothosToGStreamer = PothosToGStreamer::makeIfType( gstreamer, gstElement );
-        if ( PothosToGStreamer != nullptr )
+        if ( PothosToGStreamer )
         {
-            gstreamer->m_gstreamerSubWorkers.push_back( std::unique_ptr< GStreamerSubWorker >( PothosToGStreamer ) );
+            gstreamer->m_gstreamerSubWorkers.push_back( std::move( PothosToGStreamer ) );
             return;
         }
     }
 
     {
         auto gstreamerToPothos = GStreamerToPothos::makeIfType( gstreamer, gstElement );
-        if ( gstreamerToPothos != nullptr )
+        if ( gstreamerToPothos )
         {
-            gstreamer->m_gstreamerSubWorkers.push_back( std::unique_ptr< GStreamerSubWorker >( gstreamerToPothos ) );
+            gstreamer->m_gstreamerSubWorkers.push_back( std::move( gstreamerToPothos ) );
             return;
         }
     }
@@ -193,11 +193,11 @@ void GStreamer::createPipeline(void)
     const std::string funcName("GStreamer::createPipeline");
 
     GstTypes::GErrorPtr errorPtr;
-    auto element = gst_parse_launch_full( m_pipeline_string.c_str(), NULL, GST_PARSE_FLAG_FATAL_ERRORS, GstTypes::uniquePtrRef(errorPtr) );
+    auto element = gst_parse_launch_full( m_pipeline_string.c_str(), nullptr, GST_PARSE_FLAG_FATAL_ERRORS, GstTypes::uniquePtrRef(errorPtr) );
 
     const std::string errorMessage = GstTypes::gerrorToString( errorPtr.get() );
 
-    if ( element == NULL )
+    if ( element == nullptr )
     {
         destroyPipeline();
 
@@ -225,7 +225,7 @@ void GStreamer::createPipeline(void)
     m_pipeline = reinterpret_cast< GstPipeline* >( element );
 
     m_bus = gst_pipeline_get_bus( m_pipeline );
-    if ( m_bus == NULL )
+    if ( m_bus == nullptr )
     {
         poco_error( GstTypes::logger(), "Failed to create GStreamer bus: " );
         destroyPipeline();
@@ -236,7 +236,7 @@ void GStreamer::createPipeline(void)
 
 void GStreamer::destroyPipeline(void)
 {
-    if ( m_pipeline == NULL )
+    if ( m_pipeline == nullptr )
     {
         return;
     }
@@ -251,18 +251,18 @@ void GStreamer::destroyPipeline(void)
 
     //poco_information( GstTypes::logger(), "GStreamer::cleanup() - Post state change" );
 
-    if ( m_bus != NULL )
+    if ( m_bus != nullptr )
     {
         // Process any GStreamer messages left on the bus so we can print any errors.
         processGStreamerMessagesTimeout( 100 * GST_MSECOND );
 
         gst_object_unref( m_bus );
-        m_bus = NULL;
+        m_bus = nullptr;
     }
 
     // Free GStreamer pipeline
     gst_object_unref( GST_OBJECT( m_pipeline ) );
-    m_pipeline = NULL;
+    m_pipeline = nullptr;
 }
 
 Pothos::ObjectKwargs GStreamer::gstMessageWarnOrError( GstMessage *message )
@@ -420,7 +420,7 @@ Pothos::ObjectKwargs GStreamer::tryFormatGstMessageToObject(GstMessage *gstMessa
                 {
                     const GstFormatDefinition *gstFormatDefinition = gst_format_get_details( format );
 
-                    stats[ "format"    ] = ( gstFormatDefinition != NULL ) ? GstTypes::gcharToObject( gstFormatDefinition->nick ) : Pothos::Object( format );
+                    stats[ "format"    ] = ( gstFormatDefinition != nullptr ) ? GstTypes::gcharToObject( gstFormatDefinition->nick ) : Pothos::Object( format );
                     stats[ "processed" ] = Pothos::Object( processed );
                     stats[ "dropped"   ] = Pothos::Object( dropped );
 
@@ -436,7 +436,7 @@ Pothos::ObjectKwargs GStreamer::tryFormatGstMessageToObject(GstMessage *gstMessa
 
         case GST_MESSAGE_TAG:
         {
-            GstTagList *tags = NULL;
+            GstTagList *tags = nullptr;
             gst_message_parse_tag( gstMessage, &tags );
             auto objectMsgMap = GstTypes::objectFrom( tags );
             gst_tag_list_unref( tags );
@@ -561,7 +561,7 @@ void GStreamer::processGStreamerMessagesTimeout(GstClockTime timeout)
                 timeout
             );
         // No more message bail
-        if ( gstMessage == NULL ) return;
+        if ( gstMessage == nullptr ) return;
 
         // Only block for time out period on the first loop iteration
         timeout = 0;
@@ -652,7 +652,7 @@ Pothos::Object GStreamer::getPipelineLatency(void) const
     return Pothos::Object();
 }
 
-const std::map< std::string, GstFormat > formatMap
+static const std::map< std::string, GstFormat > formatMap
 {
     { "DEFAULT"  , GST_FORMAT_DEFAULT },
     { "BYTES"    , GST_FORMAT_BYTES   },
@@ -718,7 +718,7 @@ int64_t GStreamer::getPipelineDuration(const std::string &format) const
 void GStreamer::gstChangeState( GstState state, bool throwError )
 {
     const std::string funcName( "GStreamer::gstChangeState()" );
-    if ( m_pipeline == NULL )
+    if ( m_pipeline == nullptr )
     {
         poco_warning( GstTypes::logger(), funcName + " Will do nothing as pipeline is NULL" );
         return;
@@ -746,7 +746,7 @@ void GStreamer::gstChangeState( GstState state, bool throwError )
             );
             poco_information(
                 GstTypes::logger(),
-                funcName + " Current state: "+std::string( gst_element_state_get_name( state ) )+" . Pipeline: "+getPipelineString() );
+                funcName + " Current state: " + gst_element_state_get_name( state ) + " . Pipeline: " + getPipelineString() );
             return;
         default:
             errorStr = gst_element_state_change_return_get_name( stateChangeReturn );
@@ -763,7 +763,7 @@ void GStreamer::gstChangeState( GstState state, bool throwError )
 void GStreamer::activate(void)
 {
     // Recreate pipeline if it got destroyed last time round
-    if ( m_pipeline == NULL )
+    if ( m_pipeline == nullptr )
     {
         createPipeline();
     }

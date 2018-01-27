@@ -155,7 +155,7 @@
                     "rotation": 0,
                     "selected": false,
                     "what": "Block",
-                    "zValue": 232
+                    "zValue": 236
                 },
                 {
                     "affinityZone": "",
@@ -340,7 +340,7 @@
                     "rotation": 0,
                     "selected": false,
                     "what": "Block",
-                    "zValue": 231
+                    "zValue": 237
                 },
                 {
                     "affinityZone": "",
@@ -403,7 +403,7 @@
                         }
                     ],
                     "rotation": 0,
-                    "selected": true,
+                    "selected": false,
                     "what": "Block",
                     "zValue": 233
                 },
@@ -852,7 +852,7 @@
                         },
                         {
                             "key": "ampl",
-                            "value": "1000"
+                            "value": "120"
                         },
                         {
                             "key": "offset",
@@ -864,9 +864,9 @@
                         }
                     ],
                     "rotation": 0,
-                    "selected": false,
+                    "selected": true,
                     "what": "Block",
-                    "zValue": 230
+                    "zValue": 238
                 },
                 {
                     "enabled": true,
@@ -895,12 +895,18 @@
                     "positionY": 0,
                     "rotation": 0,
                     "selected": false,
+                    "sigSlots": [
+                        [
+                            "getCurrentLevelBytes_sourceTriggered",
+                            "setValue"
+                        ]
+                    ],
                     "signalId": "GStreamerWrapper2",
                     "signalKey": "signals",
                     "slotId": "TextDisplay0",
                     "slotKey": "slots",
                     "what": "Connection",
-                    "zValue": 228
+                    "zValue": 235
                 },
                 {
                     "enabled": true,
@@ -938,10 +944,6 @@
                     "rotation": 0,
                     "selected": false,
                     "sigSlots": [
-                        [
-                            "triggered",
-                            "currentLevelBytes_srource_Triggered"
-                        ],
                         [
                             "triggered",
                             "probeGetCurrentLevelBytes_source"
