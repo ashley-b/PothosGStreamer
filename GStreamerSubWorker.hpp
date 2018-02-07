@@ -25,6 +25,7 @@ public:
 
     GStreamer* gstreamerBlock(void) const;
     const std::string& name(void) const;
+    std::string funcName(const std::string &funcName) const;
     virtual void activate(void);
     virtual void deactivate(void);
     virtual bool blocking(void);

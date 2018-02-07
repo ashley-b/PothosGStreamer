@@ -414,7 +414,7 @@ Pothos::ObjectKwargs GStreamer::tryFormatGstMessageToObject(GstMessage *gstMessa
                 guint64 processed;
                 guint64 dropped;
 
-                gst_message_parse_qos_stats (gstMessage, &format, &processed, &dropped );
+                gst_message_parse_qos_stats( gstMessage, &format, &processed, &dropped );
 
                 if ( format != GST_FORMAT_UNDEFINED  )
                 {
@@ -424,7 +424,8 @@ Pothos::ObjectKwargs GStreamer::tryFormatGstMessageToObject(GstMessage *gstMessa
                     stats[ "processed" ] = Pothos::Object( processed );
                     stats[ "dropped"   ] = Pothos::Object( dropped );
 
-                    poco_information( GstTypes::logger(), "GStreamer QOS stats: processed "+std::to_string( processed ) + ", dropped "+std::to_string( dropped ) );
+                    poco_information( GstTypes::logger(), "GStreamer QOS stats: processed "+std::to_string( processed ) +
+                                      ", dropped "+std::to_string( dropped ) );
                 }
             }
             Pothos::ObjectKwargs objectMsgMap;

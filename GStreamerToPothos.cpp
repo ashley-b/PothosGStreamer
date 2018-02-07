@@ -248,7 +248,7 @@ namespace
         {
             // Register Callable and Probe
             {
-                const auto funcGetterName = "getCurrentBufferCount_" + name();
+                const auto funcGetterName = this->funcName( "getCurrentBufferCount" );
                 gstreamerBlock->registerCallable(
                     funcGetterName,
                     Pothos::Callable(&GStreamerToPothosImpl::getCurrentBufferCount).bind( std::ref( *this ), 0)
@@ -257,7 +257,7 @@ namespace
             }
         }
 
-        ~GStreamerToPothosImpl(void) = default;
+        ~GStreamerToPothosImpl(void) override = default;
 
         uint32_t getCurrentBufferCount()
         {
@@ -301,10 +301,12 @@ namespace
                 gst_sample_unref( gst_sample );
             }
             else
+            {
                 if ( m_runState->eosChanged() == false )
                 {
                     return;
                 }
+            }
 
             // If packet.payload is not valid, create empty one with no size.
             if ( static_cast< bool >( packet.payload ) == false )
@@ -317,7 +319,7 @@ namespace
 
     };  // class GStreamerToPothosImpl
 
-}
+}  // namespace (anonymous)
 
 std::unique_ptr< GStreamerSubWorker > GStreamerToPothos::makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement)
 {

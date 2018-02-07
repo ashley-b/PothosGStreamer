@@ -43,7 +43,7 @@ public:
     GStreamer& operator=(const GStreamer&) = delete;
 
     GStreamer(const std::string &pipelineString);
-    ~GStreamer(void);
+    ~GStreamer(void) override;
 
     static Block *make(const std::string &pipelineString);
 

@@ -19,6 +19,11 @@ const std::string& GStreamerSubWorker::name(void) const
     return m_name;
 }
 
+std::string GStreamerSubWorker::funcName(const std::string &funcName) const
+{
+    return funcName + "_" + name();
+}
+
 void GStreamerSubWorker::activate(void)
 {
 }

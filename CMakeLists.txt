@@ -38,7 +38,6 @@ if (pothos_util)
     endforeach(test_name)
 endif()
 
-include_directories( ${PC_GSTREAMER_INCLUDE_DIRS} )
 
 ########################################################################
 # Module setup
@@ -58,3 +57,5 @@ POTHOS_MODULE_UTIL(
 
     ENABLE_DOCS
 )
+
+target_include_directories( GStreamer SYSTEM PRIVATE ${PC_GSTREAMER_INCLUDE_DIRS} )

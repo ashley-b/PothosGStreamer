@@ -168,17 +168,17 @@ namespace
         {
             // Register Callable and Probe
             {
-                const auto funcGetterName = "getCurrentLevelBytes_" + name();
+                const auto funcGetterName = this->funcName( "getCurrentLevelBytes" );
                 gstreamerBlock->registerCallable(
                     funcGetterName,
                     Pothos::Callable(&PothosToGStreamerImpl::getCurrentLevelBytes).bind( std::ref( *this ), 0)
                 );
-                gstreamerBlock->registerProbe(funcGetterName);
+                gstreamerBlock->registerProbe( funcGetterName );
             }
 
             // Register sendEos Callable and Slot
             {
-                const auto sendEosName = "sendEos_" + name();
+                const auto sendEosName = this->funcName( "sendEos" );
                 gstreamerBlock->registerCallable(
                     sendEosName,
                     Pothos::Callable(&PothosToGStreamerImpl::sendEos).bind( std::ref( *this ), 0)
@@ -188,7 +188,7 @@ namespace
             }
         }
 
-        ~PothosToGStreamerImpl(void) = default;
+        ~PothosToGStreamerImpl(void) override = default;
 
         const std::string& getTagAppData(void) const
         {
@@ -356,7 +356,7 @@ namespace
         }
     };  // class PothosToGStreamerImpl
 
-}
+}  // namespace (anonymous)
 
 std::unique_ptr< GStreamerSubWorker > PothosToGStreamer::makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement)
 {

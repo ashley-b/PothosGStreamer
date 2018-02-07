@@ -300,10 +300,10 @@ namespace GstTypes
     {
         Pothos::ObjectKwargs obj;
 
-        obj[ "flags"        ] = Pothos::Object( (int)segment->flags );
+        obj[ "flags"        ] = Pothos::Object( int( segment->flags ) );
         obj[ "rate"         ] = Pothos::Object( segment->rate );
         obj[ "applied_rate" ] = Pothos::Object( segment->applied_rate );
-        obj[ "format"       ] = Pothos::Object( (int)segment->format );
+        obj[ "format"       ] = Pothos::Object( int( segment->format ) );
         obj[ "base"         ] = Pothos::Object( segment->base );
         obj[ "offset"       ] = Pothos::Object( segment->offset );
         obj[ "start"        ] = Pothos::Object( segment->start );
@@ -497,8 +497,8 @@ namespace GstTypes
             }
         }
 
-        // If we made it here we failed to convert the GValue. Use glib to convert it to human readable string
-        // log warning.
+        // If we made it here we failed to convert the GValue.
+        // Use glib to convert it to human readable string and log warning.
         const auto value_str( gcharToString( GCharPtr( g_strdup_value_contents( gvalue ) ).get() ) );
         const auto value_type_name = gcharToString( G_VALUE_TYPE_NAME( gvalue ) );
         poco_warning(
