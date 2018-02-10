@@ -282,8 +282,9 @@ Pothos::ObjectKwargs GStreamer::gstMessageWarnOrError( GstMessage *message )
     }
 
     std::ostringstream error_message;
-    error_message << "GStreamer " << ( ( error ) ? "WARNING" : "ERROR" );
-    error_message << " from element: " << GST_OBJECT_NAME( message->src ) << ": code = " << errorPtr->code;
+    error_message << "GStreamer " << ( ( error ) ? "ERROR" : "WARNING" );
+    GstTypes::GCharPtr objectName( gst_object_get_name( message->src ) );
+    error_message << " from element: " << objectName.get() << ": code = " << errorPtr->code;
     error_message << ", message = " << errorPtr->message;
 
     Pothos::ObjectKwargs objectMap;
@@ -314,8 +315,8 @@ Pothos::ObjectKwargs GStreamer::gstMessageWarnOrError( GstMessage *message )
 static Pothos::ObjectKwargs clockInfo(GstClock *clock)
 {
     Pothos::ObjectKwargs objectMsgMap;
-
-    objectMsgMap[ "name"       ] = GstTypes::gcharToObject( GST_OBJECT_NAME( clock ) );
+    GstTypes::GCharPtr objectName( gst_object_get_name( reinterpret_cast< GstObject* >(clock) ) );
+    objectMsgMap[ "name"       ] = GstTypes::gcharToObject( objectName.get() );
     objectMsgMap[ "resolution" ] = Pothos::Object( gst_clock_get_resolution( clock ) );
     return objectMsgMap;
 }
