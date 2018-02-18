@@ -265,24 +265,38 @@ void GStreamer::destroyPipeline(void)
     m_pipeline = nullptr;
 }
 
-Pothos::ObjectKwargs GStreamer::gstMessageWarnOrError( GstMessage *message )
+Pothos::ObjectKwargs GStreamer::gstMessageInfoWarnError( GstMessage *message )
 {
-    const bool error = ( message->type == GST_MESSAGE_ERROR );
-
     GstTypes::GErrorPtr errorPtr;
     GstTypes::GCharPtr dbgInfoPtr;
-
-    if ( error )
+    std::string messageType;
+    switch ( GST_MESSAGE_TYPE( message ) )
     {
-        gst_message_parse_error( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
-    }
-    else
-    {
-        gst_message_parse_warning( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+        case GST_MESSAGE_ERROR:
+        {
+            messageType = "ERROR";
+            gst_message_parse_error( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+            break;
+        }
+        case GST_MESSAGE_WARNING:
+        {
+            messageType = "WARNING";
+            gst_message_parse_warning( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+            break;
+        }
+        case GST_MESSAGE_INFO:
+        {
+            messageType = "INFO";
+            gst_message_parse_info( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+            break;
+        }
+        default:
+            return Pothos::ObjectKwargs();
     }
 
     std::ostringstream error_message;
-    error_message << "GStreamer " << ( ( error ) ? "ERROR" : "WARNING" );
+    error_message << "GStreamer " << messageType;
+
     GstTypes::GCharPtr objectName( gst_object_get_name( message->src ) );
     error_message << " from element: " << objectName.get() << ": code = " << errorPtr->code;
     error_message << ", message = " << errorPtr->message;
@@ -297,16 +311,32 @@ Pothos::ObjectKwargs GStreamer::gstMessageWarnOrError( GstMessage *message )
 
     objectMap[ "debug_message" ] = GstTypes::gcharToObject( dbgInfoPtr.get() );
 
-    if ( error )
+    switch ( GST_MESSAGE_TYPE( message ) )
     {
-        poco_error( GstTypes::logger(), error_message.str() );
-        poco_error( GstTypes::logger(), debug_message.str() );
-        m_pipeline_active = false;
-    }
-    else
-    {
-        poco_warning( GstTypes::logger(), error_message.str() );
-        poco_warning( GstTypes::logger(), debug_message.str() );
+        case GST_MESSAGE_ERROR:
+        {
+            poco_error( GstTypes::logger(), error_message.str() );
+            poco_error( GstTypes::logger(), debug_message.str() );
+
+            // Stop pipeline if there was an error
+            m_pipeline_active = false;
+
+            break;
+        }
+        case GST_MESSAGE_WARNING:
+        {
+            poco_warning( GstTypes::logger(), error_message.str() );
+            poco_warning( GstTypes::logger(), debug_message.str() );
+            break;
+        }
+        case GST_MESSAGE_INFO:
+        {
+            poco_information( GstTypes::logger(), error_message.str() );
+            poco_information( GstTypes::logger(), debug_message.str() );
+            break;
+        }
+        default:
+            break;
     }
 
     return objectMap;
@@ -327,12 +357,17 @@ Pothos::ObjectKwargs GStreamer::tryFormatGstMessageToObject(GstMessage *gstMessa
     {
         case GST_MESSAGE_WARNING:
         {
-            return gstMessageWarnOrError( gstMessage );
+            return gstMessageInfoWarnError( gstMessage );
         }
 
         case GST_MESSAGE_ERROR:
         {
-            return gstMessageWarnOrError( gstMessage );
+            return gstMessageInfoWarnError( gstMessage );
+        }
+
+        case GST_MESSAGE_INFO:
+        {
+            return gstMessageInfoWarnError( gstMessage );
         }
 
         case GST_MESSAGE_STATE_CHANGED:

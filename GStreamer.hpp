@@ -36,7 +36,7 @@ private:
     void findSourcesAndSinks(GstBin *bin);
     void createPipeline(void);
     void destroyPipeline(void);
-    Pothos::ObjectKwargs gstMessageWarnOrError( GstMessage *message );
+    Pothos::ObjectKwargs gstMessageInfoWarnError( GstMessage *message );
 
 public:
     GStreamer(const GStreamer&) = delete;
