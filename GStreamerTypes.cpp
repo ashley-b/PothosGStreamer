@@ -193,11 +193,11 @@ namespace GstTypes
             GStreamerBufferWrapper(const GStreamerBufferWrapper&) = delete;             // No copy constructor
             GStreamerBufferWrapper& operator= (const GStreamerBufferWrapper&) = delete; // No assignment operator
 
-            GStreamerBufferWrapper(GstBuffer *gstBuffer) :
+            GStreamerBufferWrapper(GstBuffer *gstBuffer, GstMapFlags flags) :
                 m_buffer(gst_buffer_ref(gstBuffer)),
                 m_mapInfo(GST_MAP_INFO_INIT)
             {
-                if ( !gst_buffer_map(m_buffer, &m_mapInfo, GST_MAP_READ) )
+                if ( !gst_buffer_map(m_buffer, &m_mapInfo, flags) )
                 {
                     gst_buffer_unref(m_buffer);
                     // Blow up
@@ -211,9 +211,9 @@ namespace GstTypes
                 gst_buffer_unref(m_buffer);
             }
 
-            static Pothos::SharedBuffer makeSharedBuffer(GstBuffer *gstBuffer)
+            static Pothos::SharedBuffer makeSharedReadBuffer(GstBuffer *gstBuffer)
             {
-                auto gstreamerBufferWrapper = std::make_shared< GStreamerBufferWrapper >(gstBuffer);
+                auto gstreamerBufferWrapper = std::make_shared< GStreamerBufferWrapper >( gstBuffer, GST_MAP_READ );
 
                 return
                     Pothos::SharedBuffer(
@@ -230,7 +230,7 @@ namespace GstTypes
     {
         Pothos::Packet packet;
 
-        packet.payload = Pothos::BufferChunk( GStreamerBufferWrapper::makeSharedBuffer( gstBuffer ) );
+        packet.payload = Pothos::BufferChunk( GStreamerBufferWrapper::makeSharedReadBuffer( gstBuffer ) );
 
         if ( GST_BUFFER_TIMESTAMP_IS_VALID( gstBuffer ) )
         {
@@ -361,7 +361,7 @@ namespace GstTypes
             args[ "domain_id" ] = Pothos::Object( gError->domain );
             args[ "domain"    ] = Pothos::Object( GstTypes::gquarkToString( gError->domain ) );
             args[ "message"   ] = GstTypes::gcharToObject( gError->message );
-            return Pothos::Object::make( /*std::move(*/ args /*)*/ );
+            return Pothos::Object::make( args );
         }
 
         if ( type == GST_TYPE_CAPS )
@@ -406,16 +406,35 @@ namespace GstTypes
         {
             const auto date = static_cast< const GDate * >( boxedData );
             Pothos::ObjectKwargs dateMap;
-            if ( date->dmy )
+
             {
-                dateMap[ "year"  ] = Pothos::Object( date->year  );
-                dateMap[ "month" ] = Pothos::Object( date->month );
-                dateMap[ "day"   ] = Pothos::Object( date->day   );
+                const auto year = g_date_get_year( date );
+                if ( g_date_valid_year( year ) == TRUE )
+                {
+                    dateMap[ "year" ] = Pothos::Object( year );
+                }
+            }
+            {
+                const auto month = g_date_get_month( date );
+                if ( g_date_valid_month( month ) == TRUE )
+                {
+                    dateMap[ "month" ] = Pothos::Object( month );
+                }
+            }
+            {
+                const auto day = g_date_get_day( date );
+                if ( g_date_valid_day( day ) == TRUE )
+                {
+                    dateMap[ "day" ] = Pothos::Object( day );
+                }
             }
 
-            if ( date->julian )
             {
-                dateMap[ "julian_days" ] = Pothos::Object( date->julian_days );
+                const auto julian = g_date_get_julian( date );
+                if ( g_date_valid_julian( julian ) == TRUE )
+                {
+                    dateMap[ "julian_days" ] = Pothos::Object( julian );
+                }
             }
             return Pothos::Object::make( dateMap );
         }

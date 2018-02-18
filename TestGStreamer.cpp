@@ -23,6 +23,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
     const std::string testString( "test 1, 2" );
     {
         GValue value = G_VALUE_INIT;
+
         g_value_init(&value, G_TYPE_STRING);
         g_value_set_static_string(&value, testString.c_str() );
 
@@ -189,28 +190,28 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gchar_ptr)
 {
     //(void)g_strdup( "leak" );
     constexpr size_t stringLength = 255;
-    gchar srcString[stringLength];
-    gchar dstString[stringLength];
+    std::array< gchar, stringLength > srcString;
+    std::array< gchar, stringLength > dstString;
     constexpr gchar fillChar = 'a';
 
-    for (size_t i=0; i < stringLength; ++i)
-    {
-        srcString[i] =  static_cast< gchar >(i+1);
-        dstString[i] = fillChar;
-    }
+    // Create some test data. Sequentially increasing values.
+    std::iota(srcString.begin(), srcString.end(), 1);
+
+    std::fill(dstString.begin(), dstString.end(), fillChar);
 
     // Zero terminate both strings
-    srcString[stringLength - 1] = 0;
-    dstString[stringLength - 1] = 0;
+    srcString.back() = 0;
+    dstString.back() = 0;
 
-    GstTypes::GCharPtr gcharPtr( g_strdup( srcString ) );
+    GstTypes::GCharPtr gcharPtr( g_strdup( srcString.data() ) );
 
     std::fill_n( gcharPtr.get(), strlen(gcharPtr.get()), fillChar );
 
-    POTHOS_TEST_EQUAL_GCHAR( gcharPtr.get(), dstString );
+    POTHOS_TEST_EQUAL_GCHAR( gcharPtr.get(), dstString.data() );
 }
 
-static constexpr char testString[]{ "Look out its string from magic" };
+static constexpr char testString[]{ "Caution!! test string" };
+
 static void allocTestGChar(gchar **str)
 {
     *str = g_strdup( testString );
@@ -225,19 +226,19 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_unique_ptr_ref)
     POTHOS_TEST_EQUAL_GCHAR( testString, gcharPtr.get() );
 }
 
-static GError* testError()
+static GError* testGError()
 {
     return g_error_new_literal(gst_core_error_quark(), GST_CORE_ERROR_TOO_LAZY, "Test Error");
 }
 
 static void errorFunc(GError **error)
 {
-    *error = testError();
+    *error = testGError();
 }
 
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gerror_ptr)
 {
-    GstTypes::GErrorPtr refError( testError() );
+    GstTypes::GErrorPtr refError( testGError() );
     GstTypes::GErrorPtr gerrorPtr;
     errorFunc( GstTypes::uniquePtrRef( gerrorPtr ) );
 
@@ -254,8 +255,8 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_source)
     // Allocate some fake data
     std::vector< int8_t > testData;
     testData.resize( 2048 );
-    // Create some test data
-    std::generate (testData.begin(), testData.end(), []()->int8_t { static int8_t i = 0; return i++; });
+    // Create some test data. Sequentially increasing values.
+    std::iota(testData.begin(), testData.end(), 0);
 
     // Convert our real values to complex values for setElements method
     {
@@ -285,27 +286,27 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_source)
     }
 
     std::fstream fs;
-    fs.open(tempFile.path(), std::fstream::in | std::fstream::binary );
-    POTHOS_TEST_TRUE( (fs) );  // Make sure file can be opend, hence was written by GStreamer
+    fs.open( tempFile.path(), std::fstream::in | std::fstream::binary );
+    POTHOS_TEST_TRUE( (fs) );  // Make sure file can be opend. Should be written by GStreamer during above test
 
     // Get file size for next test
-    size_t fileSize;
-    {
-        fs.seekg (0, fs.end);
-        POTHOS_TEST_TRUE( (fs) );
-        auto fileSize_ = fs.tellg();
-        POTHOS_TEST_TRUE( fileSize_ > 0 );
-        fs.seekg (0, fs.beg);
-        POTHOS_TEST_TRUE( (fs) );
-        fileSize = static_cast< size_t >( fileSize_ );
-    }
+    const auto fileSize = [ &fs ]() -> size_t
+        {
+            fs.seekg(0, fs.end);
+            POTHOS_TEST_TRUE( (fs) );
+            const auto fileSize_ = fs.tellg();
+            POTHOS_TEST_TRUE( fileSize_ > 0 );
+            fs.seekg(0, fs.beg);
+            POTHOS_TEST_TRUE( (fs) );
+            return fileSize_;
+        }();
 
     POTHOS_TEST_EQUAL( fileSize , testData.size() );
 
     // Reading output file, from GStreamer
     std::vector< int8_t > fileBuffer;
     fileBuffer.resize( fileSize );
-    fs.read( reinterpret_cast< std::fstream::char_type* >( fileBuffer.data() ), fileBuffer.size() );
+    fs.read( reinterpret_cast< char* >( fileBuffer.data() ), fileBuffer.size() );
     POTHOS_TEST_TRUE( (fs) );
     fs.close();
 
@@ -336,8 +337,8 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_sink)
     // Create fake data that matches what GStreamer fakesrc will create
     std::vector< int8_t > testData;
     testData.resize( packetSize );
-    // Create some test data
-    std::generate (testData.begin(), testData.end(), []()->int8_t { static int8_t i = 0; return i++; });
+    // Create some test data. Sequentially increasing values.
+    std::iota(testData.begin(), testData.end(), 0);
 
     const auto packets = collector_sink.call< std::vector< Pothos::Packet > >( "getPackets" );
     std::cout << "packets.size() = " << packets.size() << std::endl;
@@ -406,7 +407,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_tag_sink)
 
     POTHOS_TEST_EQUAL( messages.size() , 1 );
 
-    // Ugly code, but this tests check tags make it from the taginject all the way out to the appsink
+    // Ugly code, but this checks tags make it from taginject all the way out to the appsink
     {
         auto args =  messages[0].extract< Pothos::ObjectKwargs >();
 
