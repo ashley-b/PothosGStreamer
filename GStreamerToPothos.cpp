@@ -50,7 +50,7 @@ namespace
             return appSink;
         }
 
-        Pothos::DType gstreamerTypeToDtype(const GstAudioInfo *gstAudioInfo)
+        static Pothos::DType gstreamerTypeToDtype(const GstAudioInfo *gstAudioInfo)
         {
             if ( GST_AUDIO_INFO_WIDTH( gstAudioInfo ) != GST_AUDIO_INFO_DEPTH( gstAudioInfo ) )
             {
