@@ -38,7 +38,7 @@ namespace {
         {
             if ( GstTypes::debug_extra )
             {
-                poco_information(GstTypes::logger(), "GStreamerStatic::GStreamerStatic() - gst_is_initialized() = " + GstTypes::boolToString( gst_is_initialized() ) );
+                poco_information(GstTypes::logger(), "GStreamerStatic::~GStreamerStatic() - gst_is_initialized() = " + GstTypes::boolToString( gst_is_initialized() ) );
             }
             // Only deinit GStreamer if it was initialized
             if ( gst_is_initialized() == TRUE )

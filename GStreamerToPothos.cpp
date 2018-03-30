@@ -174,7 +174,7 @@ namespace
                 this,
                 nullptr
             );
-            gst_object_unref( GST_OBJECT( m_gstAppSink ) );
+            gst_object_unref( m_gstAppSink );
         }
 
         bool eosChanged()
@@ -217,7 +217,7 @@ namespace
                 m_capsObj = GstTypes::gcharToObject( GstTypes::GCharPtr( gst_caps_to_string( caps ) ).get() );
             }
 
-            packet.metadata[ GstTypes::PACKET_META_CAPS    ] = m_capsObj;
+            packet.metadata[ GstTypes::PACKET_META_CAPS ] = m_capsObj;
 
             // If m_rxRateLabel valid add it to the packet
             if ( !m_rxRateLabel.id.empty() )

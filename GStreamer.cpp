@@ -192,14 +192,14 @@ void GStreamer::createPipeline()
     const std::string funcName("GStreamer::createPipeline");
 
     GstTypes::GErrorPtr errorPtr;
-    auto element = gst_parse_launch_full( m_pipeline_string.c_str(), nullptr, GST_PARSE_FLAG_FATAL_ERRORS, GstTypes::uniquePtrRef(errorPtr) );
+    std::unique_ptr< GstElement, GstTypes::Deleter< void, gst_object_unref > >element (
+        gst_parse_launch_full( m_pipeline_string.c_str(), nullptr, GST_PARSE_FLAG_FATAL_ERRORS, GstTypes::uniquePtrRef(errorPtr) )
+    );
 
-    const std::string errorMessage = GstTypes::gerrorToString( errorPtr.get() );
+    const std::string errorMessage( GstTypes::gerrorToString( errorPtr.get() ) );
 
-    if ( element == nullptr )
+    if ( !element )
     {
-        destroyPipeline();
-
         const std::string message( "Failed to parse pipeline ( " + m_pipeline_string + " ). Error: " + errorMessage );
         throw Pothos::InvalidArgumentException( funcName, message );
     }
@@ -210,18 +210,15 @@ void GStreamer::createPipeline()
     }
 
     // If the element is not a pipeline bail
-    if ( GST_IS_PIPELINE( element ) == FALSE )
+    if ( GST_IS_PIPELINE( element.get() ) == FALSE )
     {
-        gst_object_unref( GST_OBJECT( element ) );
         const std::string message( "Error in pipeline description, element can not be converted a pipeline" );
         poco_error( GstTypes::logger(), message );
-
-        destroyPipeline();
 
         throw Pothos::InvalidArgumentException( funcName, message );
     }
 
-    m_pipeline = reinterpret_cast< GstPipeline* >( element );
+    m_pipeline = reinterpret_cast< GstPipeline* >( element.release() );
 
     m_bus = gst_pipeline_get_bus( m_pipeline );
     if ( m_bus == nullptr )
@@ -240,15 +237,13 @@ void GStreamer::destroyPipeline()
         return;
     }
 
-    //poco_information( GstTypes::logger(), "GStreamer::cleanup() - Pre state change" );
-    // TODO/FIXME: Some times change state hangs(blocks). This function is not ment to block from the GStreamer docs.
-    // Should we safe guard our selfs from this or  just let it crash Pothos ?????
+    // TODO: Some times change state hangs(blocks).
+    //   This function is not ment to block from the GStreamer docs.
+    //   Should we safe guard our selfs from this or just let it crash Pothos ?????
 
     // Shutdown the pipeline and free any state info in it
     // N.B. This must be done so gst_object_unref actually free the object
     gstChangeState( GST_STATE_NULL, false );
-
-    //poco_information( GstTypes::logger(), "GStreamer::cleanup() - Post state change" );
 
     if ( m_bus != nullptr )
     {
@@ -260,7 +255,7 @@ void GStreamer::destroyPipeline()
     }
 
     // Free GStreamer pipeline
-    gst_object_unref( GST_OBJECT( m_pipeline ) );
+    gst_object_unref( m_pipeline );
     m_pipeline = nullptr;
 }
 

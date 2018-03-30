@@ -49,7 +49,7 @@ namespace
         PothosToGStreamerRunState(const PothosToGStreamerRunState&) = delete;
         PothosToGStreamerRunState& operator=(const PothosToGStreamerRunState&) = delete;
 
-        PothosToGStreamerRunState(GStreamerSubWorker *gstreamerSubWorker) :
+        explicit PothosToGStreamerRunState(GStreamerSubWorker *gstreamerSubWorker) :
             m_gstAppSource( getAppSrcByName( gstreamerSubWorker ) ),
             m_baseCaps( nullptr ),
             m_tag_send_app_data_once( true ),
@@ -96,7 +96,7 @@ namespace
                 gst_caps_unref( m_baseCaps );
                 m_baseCaps = nullptr;
             }
-            gst_object_unref( GST_OBJECT( m_gstAppSource ) );
+            gst_object_unref( m_gstAppSource );
         }
 
         bool sendEos()
