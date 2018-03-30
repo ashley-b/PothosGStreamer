@@ -31,7 +31,7 @@ namespace
 
         static gboolean seek_data(GstAppSrc * /* src */, guint64 /* offset */, gpointer /* user_data */)
         {
-            return false;
+            return FALSE;
         }
 
         static GstAppSrc* getAppSrcByName(GStreamerSubWorker *gstreamerSubWorker)
@@ -79,7 +79,7 @@ namespace
             );
         }
 
-        ~PothosToGStreamerRunState(void)
+        ~PothosToGStreamerRunState()
         {
             // Disconnect callbacks
             GstAppSrcCallbacks gstAppSrcCallbacks{
@@ -99,7 +99,7 @@ namespace
             gst_object_unref( GST_OBJECT( m_gstAppSource ) );
         }
 
-        bool sendEos(void)
+        bool sendEos()
         {
             auto flow_return = gst_app_src_end_of_stream( gstAppSource() );
             if ( flow_return != GST_FLOW_OK )
@@ -111,37 +111,34 @@ namespace
             return true;
         }
 
-        GstAppSrc *gstAppSource(void)
+        GstAppSrc *gstAppSource()
         {
             return m_gstAppSource;
         }
 
-        GstCaps* getBaseCaps(void)
+        GstCaps* getBaseCaps()
         {
             return m_baseCaps;
         }
 
-        bool needData(void) const
+        bool needData() const
         {
             return m_needData.load();
         }
 
-        bool tag_send_app_data_once(void)
+        bool tag_send_app_data_once()
         {
             if ( m_tag_send_app_data_once )
             {
                 m_tag_send_app_data_once = false;
                 return true;
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         bool sendEvent(GstEvent *event)
         {
-            return gst_element_send_event( GST_ELEMENT( gstAppSource() ), event);
+            return gst_element_send_event( GST_ELEMENT( gstAppSource() ), event) == TRUE;
         }
     };  // class PothosToGStreamerRunState
 
@@ -188,9 +185,9 @@ namespace
             }
         }
 
-        ~PothosToGStreamerImpl(void) override = default;
+        ~PothosToGStreamerImpl() override = default;
 
-        const std::string& getTagAppData(void) const
+        const std::string& getTagAppData() const
         {
             return *m_tag_app_data;
         }
@@ -200,18 +197,18 @@ namespace
             *m_tag_app_data = tag_app_data;
         }
 
-        void activate(void) override
+        void activate() override
         {
             // Get current instance of GStreamer app source
             m_runState.reset( new PothosToGStreamerRunState( this ) );
         }
 
-        void deactivate(void) override
+        void deactivate() override
         {
             m_runState.reset();
         }
 
-        bool send_gstreamer_app_tags(void)
+        bool send_gstreamer_app_tags()
         {
             GstTagList *gstTagList = gst_tag_list_new(
                 GST_TAG_APPLICATION_NAME, "Pothos",
@@ -341,14 +338,14 @@ namespace
             m_pothosInputPort->popMessage();
         }
 
-        void sendEos(void)
+        void sendEos()
         {
             check_run_state_ptr();
 
             m_runState->sendEos();
         }
 
-        guint64 getCurrentLevelBytes(void) const
+        guint64 getCurrentLevelBytes() const
         {
             check_run_state_ptr();
 
@@ -356,7 +353,7 @@ namespace
         }
     };  // class PothosToGStreamerImpl
 
-}  // namespace (anonymous)
+}  // namespace
 
 std::unique_ptr< GStreamerSubWorker > PothosToGStreamer::makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement)
 {

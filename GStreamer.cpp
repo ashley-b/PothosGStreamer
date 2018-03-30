@@ -100,7 +100,7 @@ GStreamer::GStreamer(const std::string &pipelineString) :
     this->registerProbe("getPipelineDuration");
 }
 
-GStreamer::~GStreamer(void)
+GStreamer::~GStreamer()
 {
     destroyPipeline();
 }
@@ -117,14 +117,14 @@ GstElement* GStreamer::getPipelineElementByName(const std::string &name) const
 
 void GStreamer::for_each_pipeline_element(const GValue *value, gpointer data)
 {
-    GstElement *gstElement = GST_ELEMENT( g_value_get_object( value ) );
+    auto gstElement = GST_ELEMENT( g_value_get_object( value ) );
     if ( gstElement == nullptr )
     {
         poco_warning(GstTypes::logger(), "for_each_pipeline_element: object is not a GstElement");
         return;
     }
 
-    GStreamer *gstreamer = static_cast< GStreamer* >( data );
+    auto gstreamer = static_cast< GStreamer* >( data );
 
     {
         auto PothosToGStreamer = PothosToGStreamer::makeIfType( gstreamer, gstElement );
@@ -187,7 +187,7 @@ void GStreamer::findSourcesAndSinks(GstBin *bin)
     throw Pothos::RuntimeException( funcName, "Too many GST_ITERATOR_RESYNC iterating elements to find sources and sinks" );
 }
 
-void GStreamer::createPipeline(void)
+void GStreamer::createPipeline()
 {
     const std::string funcName("GStreamer::createPipeline");
 
@@ -204,13 +204,13 @@ void GStreamer::createPipeline(void)
         throw Pothos::InvalidArgumentException( funcName, message );
     }
 
-    if ( errorPtr.get() != nullptr )
+    if ( errorPtr )
     {
         poco_warning( GstTypes::logger(), "Created pipeline, but had warning: " + errorMessage );
     }
 
     // If the element is not a pipeline bail
-    if ( GST_IS_PIPELINE( element ) == false )
+    if ( GST_IS_PIPELINE( element ) == FALSE )
     {
         gst_object_unref( GST_OBJECT( element ) );
         const std::string message( "Error in pipeline description, element can not be converted a pipeline" );
@@ -233,7 +233,7 @@ void GStreamer::createPipeline(void)
     }
 }
 
-void GStreamer::destroyPipeline(void)
+void GStreamer::destroyPipeline()
 {
     if ( m_pipeline == nullptr )
     {
@@ -338,7 +338,7 @@ void GStreamer::workerStop(const std::string & reason)
 
 Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessage)
 {
-    switch ( GST_MESSAGE_TYPE( gstMessage ) )
+    switch ( gstMessage->type )
     {
         case GST_MESSAGE_WARNING:
         {
@@ -381,8 +381,8 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
             Pothos::ObjectKwargs objectMsgMap( clockInfo( clock ) );
 
             /* Stop and start pipeline to force new clock selection */
-            gst_element_set_state ( GST_ELEMENT( m_pipeline ), GST_STATE_PAUSED);
-            gst_element_set_state ( GST_ELEMENT( m_pipeline ), GST_STATE_PLAYING);
+            gst_element_set_state ( reinterpret_cast< GstElement* >( m_pipeline ), GST_STATE_PAUSED);
+            gst_element_set_state ( reinterpret_cast< GstElement* >( m_pipeline ), GST_STATE_PLAYING);
 
             return objectMsgMap;
         }
@@ -644,12 +644,12 @@ void GStreamer::setState(const std::string &state)
     m_gstState = it->second;
 }
 
-std::string GStreamer::getPipelineString(void) const
+std::string GStreamer::getPipelineString() const
 {
     return m_pipeline_string;
 }
 
-GstPipeline* GStreamer::getPipeline(void) const
+GstPipeline* GStreamer::getPipeline() const
 {
     return m_pipeline;
 }
@@ -659,24 +659,25 @@ inline Pothos::Object GstClockTimeToObject(const GstClockTime gstClockTime)
     return (gstClockTime == GST_CLOCK_TIME_NONE) ? Pothos::Object() : Pothos::Object(gstClockTime);
 }
 
-Pothos::Object GStreamer::getPipelineLatency(void) const
+Pothos::Object GStreamer::getPipelineLatency() const
 {
     std::unique_ptr < GstQuery, GstTypes::Deleter< GstQuery, gst_query_unref > > query( gst_query_new_latency() );
     auto res = gst_element_query( GST_ELEMENT( m_pipeline ), query.get() );
-    if (res)
+    if (res == FALSE)
     {
-        gboolean live;
-        GstClockTime min_latency;
-        GstClockTime max_latency;
-        gst_query_parse_latency(query.get(), &live, &min_latency, &max_latency);
-
-        Pothos::ObjectKwargs args;
-        args["live"       ] = Pothos::Object( static_cast< bool >( live ) );
-        args["min_latency"] = GstClockTimeToObject( min_latency );
-        args["max_latency"] = GstClockTimeToObject( max_latency );
-        return Pothos::Object::make( args );
+        return Pothos::Object();
     }
-    return Pothos::Object();
+
+    gboolean live;
+    GstClockTime min_latency;
+    GstClockTime max_latency;
+    gst_query_parse_latency(query.get(), &live, &min_latency, &max_latency);
+
+    Pothos::ObjectKwargs args;
+    args["live"       ] = Pothos::Object( static_cast< bool >( live ) );
+    args["min_latency"] = GstClockTimeToObject( min_latency );
+    args["max_latency"] = GstClockTimeToObject( max_latency );
+    return Pothos::Object::make( args );
 }
 
 static const std::map< std::string, GstFormat > formatMap
@@ -707,7 +708,7 @@ int64_t GStreamer::getPipelinePosition(const std::string &format) const
     }
 
     gint64 position;
-    if ( gst_element_query_position(GST_ELEMENT( m_pipeline ), it->second, &position) )
+    if ( gst_element_query_position(GST_ELEMENT( m_pipeline ), it->second, &position) == TRUE )
     {
         return position;
     }
@@ -734,7 +735,7 @@ int64_t GStreamer::getPipelineDuration(const std::string &format) const
     }
 
     gint64 duration;
-    if ( gst_element_query_duration(GST_ELEMENT( m_pipeline ), it->second, &duration) )
+    if ( gst_element_query_duration(GST_ELEMENT( m_pipeline ), it->second, &duration) == TRUE )
     {
         return duration;
     }
@@ -751,7 +752,7 @@ void GStreamer::gstChangeState( GstState state, bool throwError )
         return;
     }
 
-    const GstStateChangeReturn stateChangeReturn = gst_element_set_state( GST_ELEMENT( m_pipeline ), state );
+    const auto stateChangeReturn = gst_element_set_state( GST_ELEMENT( m_pipeline ), state );
 
     std::string errorStr;
     switch ( stateChangeReturn )
@@ -787,7 +788,7 @@ void GStreamer::gstChangeState( GstState state, bool throwError )
     }
 }
 
-void GStreamer::activate(void)
+void GStreamer::activate()
 {
     // Recreate pipeline if it got destroyed last time round
     if ( m_pipeline == nullptr )
@@ -815,7 +816,7 @@ void GStreamer::activate(void)
     m_pipeline_active = true;
 }
 
-void GStreamer::deactivate(void)
+void GStreamer::deactivate()
 {
     for (auto &subWorker : m_gstreamerSubWorkers)
     {
@@ -830,7 +831,7 @@ void GStreamer::propagateLabels(const Pothos::InputPort * /*input*/)
 {
 }
 
-void GStreamer::work(void)
+void GStreamer::work()
 {
     if ( m_pipeline_active == false )
     {

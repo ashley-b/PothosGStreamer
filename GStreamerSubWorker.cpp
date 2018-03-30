@@ -9,12 +9,12 @@ GStreamerSubWorker::GStreamerSubWorker(GStreamer *gstreamerBlock, const std::str
 {
 }
 
-GStreamer* GStreamerSubWorker::gstreamerBlock(void) const
+GStreamer* GStreamerSubWorker::gstreamerBlock() const
 {
     return m_gstreamerBlock;
 }
 
-const std::string& GStreamerSubWorker::name(void) const
+const std::string& GStreamerSubWorker::name() const
 {
     return m_name;
 }
@@ -24,15 +24,15 @@ std::string GStreamerSubWorker::funcName(const std::string &funcName) const
     return funcName + "_" + name();
 }
 
-void GStreamerSubWorker::activate(void)
+void GStreamerSubWorker::activate()
 {
 }
 
-void GStreamerSubWorker::deactivate(void)
+void GStreamerSubWorker::deactivate()
 {
 }
 
-bool GStreamerSubWorker::blocking(void)
+bool GStreamerSubWorker::blocking()
 {
     return false;
 }

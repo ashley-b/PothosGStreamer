@@ -39,7 +39,7 @@ namespace GstTypes
     const std::string PACKET_META_OFFSET     ( "offset" );
     const std::string PACKET_META_OFFSET_END ( "offset_end" );
 
-    Poco::Logger & logger(void)
+    Poco::Logger & logger()
     {
         static auto &_logger = Poco::Logger::get("GStreamer");
         return _logger;
@@ -52,7 +52,7 @@ namespace GstTypes
 
     std::string gquarkToString(GQuark quark)
     {
-        auto quarkStr = g_quark_to_string( quark );
+        const auto quarkStr = g_quark_to_string( quark );
         assert( quarkStr != nullptr );
         return quarkStr;
     }
@@ -91,13 +91,13 @@ namespace GstTypes
     {
         auto args = static_cast< Pothos::ObjectKwargs* >( user_data );
         (*args)[ GstTypes::gquarkToString( field_id ) ] = objectFrom( value );
-        return true;
+        return TRUE;
     }
 
     Pothos::Object objectFrom(const GstStructure *gstStructure)
     {
         Pothos::ObjectKwargs fields;
-        if ( gst_structure_foreach(gstStructure, gstStructureForeachFunc, &fields) )
+        if ( gst_structure_foreach(gstStructure, gstStructureForeachFunc, &fields) == TRUE )
         {
             Pothos::ObjectKwargs object;
             object[ gst_structure_get_name( gstStructure ) ] = Pothos::Object( fields );
@@ -116,7 +116,7 @@ namespace GstTypes
     GstBuffer* makeSharedGStreamerBuffer(const void *data, size_t size, std::shared_ptr< void > container)
     {
         // Make copy of container
-        auto userData = static_cast< gpointer >( new std::shared_ptr< void >( container ) );
+        auto userData = static_cast< gpointer >( new std::shared_ptr< void >( std::move( container ) ) );
         // Its ok to cast away the const as we create this buffer readonly
         return gst_buffer_new_wrapped_full(
             GST_MEMORY_FLAG_READONLY,        // GstMemoryFlags flags
@@ -193,11 +193,11 @@ namespace GstTypes
             GStreamerBufferWrapper(const GStreamerBufferWrapper&) = delete;             // No copy constructor
             GStreamerBufferWrapper& operator= (const GStreamerBufferWrapper&) = delete; // No assignment operator
 
-            GStreamerBufferWrapper(GstBuffer *gstBuffer, GstMapFlags flags) :
+            explicit GStreamerBufferWrapper(GstBuffer *gstBuffer, GstMapFlags flags) :
                 m_buffer(gst_buffer_ref(gstBuffer)),
                 m_mapInfo(GST_MAP_INFO_INIT)
             {
-                if ( !gst_buffer_map(m_buffer, &m_mapInfo, flags) )
+                if ( gst_buffer_map(m_buffer, &m_mapInfo, flags) == FALSE )
                 {
                     gst_buffer_unref(m_buffer);
                     // Blow up
@@ -205,7 +205,7 @@ namespace GstTypes
                 }
             }
 
-            ~GStreamerBufferWrapper(void)
+            ~GStreamerBufferWrapper()
             {
                 gst_buffer_unmap(m_buffer, &m_mapInfo);
                 gst_buffer_unref(m_buffer);
@@ -224,7 +224,7 @@ namespace GstTypes
             }
 
         };  // class GStreamerBufferWrapper
-    }
+    }  // namespace
 
     Pothos::Packet makePacketFromGstBuffer(GstBuffer *gstBuffer)
     {
@@ -378,7 +378,7 @@ namespace GstTypes
 
         if ( type == GST_TYPE_SAMPLE )
         {
-            GstSample *gst_sample = static_cast< GstSample * >( boxedData );
+            auto *gst_sample = static_cast< GstSample * >( boxedData );
             Pothos::ObjectKwargs sampleMap;
             sampleMap[ "caps"      ] = gcharToObject( gst_caps_to_string( gst_sample_get_caps( gst_sample ) ) );
             sampleMap[ "structure" ] = objectFrom( gst_sample_get_info( gst_sample ) );
@@ -386,7 +386,7 @@ namespace GstTypes
 
             // Handle sub struct of segment
             {
-                auto segment = gst_sample_get_segment( gst_sample );
+                const auto segment = gst_sample_get_segment( gst_sample );
                 sampleMap[ "segment" ] = Pothos::Object::make( segmentToObjectKwargs( segment ) );
             }
 
@@ -542,7 +542,7 @@ namespace GstTypes
         const auto num = gst_tag_list_get_tag_size( list, tag );
 
         // If the tag is fixed add it as a unique object, otherwise add a vector of objects
-        if ( gst_tag_is_fixed(tag) )
+        if ( gst_tag_is_fixed(tag) == TRUE )
         {
             if (num > 1)
             {

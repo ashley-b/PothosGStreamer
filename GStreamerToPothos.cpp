@@ -66,12 +66,12 @@ namespace
 
             std::string format;
 
-            if ( gstAudioInfo->finfo->flags & GST_AUDIO_FORMAT_FLAG_COMPLEX )
+            if ( ( gstAudioInfo->finfo->flags & GST_AUDIO_FORMAT_FLAG_COMPLEX ) != 0 )
             {
                 format = "complex_";
             }
 
-            if ( GST_AUDIO_INFO_IS_INTEGER( gstAudioInfo ))
+            if ( GST_AUDIO_INFO_IS_INTEGER( gstAudioInfo ) )
             {
                 format += ( GST_AUDIO_INFO_IS_SIGNED( gstAudioInfo ) ) ? "int" : "uint";
             }
@@ -90,18 +90,18 @@ namespace
         {
             if ( caps == nullptr )
             {
-                if ( m_lastCaps.operator bool() )
+                if ( !m_lastCaps.operator bool() )
                 {
-                    m_dtype = Pothos::DType();
-                    m_rxRateLabel = Pothos::Label();
-                    m_lastCaps.reset();
-                    return true;
-                }
-                else
                     return false;
+                }
+
+                m_dtype = Pothos::DType();
+                m_rxRateLabel = Pothos::Label();
+                m_lastCaps.reset();
+                return true;
             }
 
-            if ( ( m_lastCaps.operator bool() )  && ( gst_caps_is_equal( caps, m_lastCaps.get() ) == true ) )
+            if ( ( m_lastCaps.operator bool() )  && ( gst_caps_is_equal( caps, m_lastCaps.get() ) == TRUE ) )
             {
                 return false;
             }
@@ -109,7 +109,7 @@ namespace
             m_lastCaps.reset( gst_caps_ref( caps ) );
 
             GstAudioInfo gstAudioInfo;
-            if ( gst_audio_info_from_caps(&gstAudioInfo, caps) == true )
+            if ( gst_audio_info_from_caps(&gstAudioInfo, caps) == TRUE )
             {
                 if ( gstAudioInfo.layout != GST_AUDIO_LAYOUT_INTERLEAVED )
                 {
@@ -132,7 +132,7 @@ namespace
         GStreamerToPothosRunState(const GStreamerToPothosRunState&) = delete;
         GStreamerToPothosRunState& operator=(const GStreamerToPothosRunState&) = delete;
 
-        GStreamerToPothosRunState(GStreamerSubWorker *gstreamerSubWorker) :
+        explicit GStreamerToPothosRunState(GStreamerSubWorker *gstreamerSubWorker) :
             m_gstAppSink( getAppSinkByName( gstreamerSubWorker ) ),
             m_bufferCount( 0 ),
             m_dtype(),
@@ -160,7 +160,7 @@ namespace
             );
         }
 
-        ~GStreamerToPothosRunState(void)
+        ~GStreamerToPothosRunState()
         {
             GstAppSinkCallbacks gstAppSinkCallbacks{
                 nullptr,
@@ -177,14 +177,14 @@ namespace
             gst_object_unref( GST_OBJECT( m_gstAppSink ) );
         }
 
-        bool eosChanged(void)
+        bool eosChanged()
         {
             const auto eosChanged = m_eosChanged;
             m_eosChanged = false;
             return eosChanged;
         }
 
-        bool eos(void) const
+        bool eos() const
         {
             return m_eos;
         }
@@ -196,7 +196,7 @@ namespace
 
         GstSample* try_pull_sample( GstClockTime timeout )
         {
-            const auto eos = gst_app_sink_is_eos( m_gstAppSink );
+            const auto eos = ( gst_app_sink_is_eos( m_gstAppSink ) == TRUE );
             if (eos != m_eos)
             {
                 m_eosChanged = true;
@@ -257,7 +257,7 @@ namespace
             }
         }
 
-        ~GStreamerToPothosImpl(void) override = default;
+        ~GStreamerToPothosImpl() override = default;
 
         uint32_t getCurrentBufferCount()
         {
@@ -265,17 +265,17 @@ namespace
             return m_runState->bufferCount();
         }
 
-        bool blocking(void) override
+        bool blocking() override
         {
             return true;
         }
 
-        void activate(void) override
+        void activate() override
         {
             m_runState.reset( new GStreamerToPothosRunState( this ) );
         }
 
-        void deactivate(void) override
+        void deactivate() override
         {
             m_runState.reset();
         }
@@ -319,7 +319,7 @@ namespace
 
     };  // class GStreamerToPothosImpl
 
-}  // namespace (anonymous)
+}  // namespace
 
 std::unique_ptr< GStreamerSubWorker > GStreamerToPothos::makeIfType(GStreamer* gstreamerBlock, GstElement* gstElement)
 {

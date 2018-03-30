@@ -5,7 +5,7 @@
 #include "GStreamerTypes.hpp"
 #include "GStreamerStatic.hpp"
 
-namespace {  // anonymous namespace
+namespace {
 
     struct GStreamerStatic
     {
@@ -18,12 +18,12 @@ namespace {  // anonymous namespace
             {
                 poco_information(GstTypes::logger(), "GStreamerStatic::GStreamerStatic() - gst_is_initialized() = " + GstTypes::boolToString( gst_is_initialized() ) );
             }
-            // gst_segtrap_set_enabled(false);
+            // gst_segtrap_set_enabled(FALSE);
 
             // Run GStreamer registry update in this thread
-            gst_registry_fork_set_enabled( false );
+            gst_registry_fork_set_enabled( FALSE );
 
-            if (  !gst_init_check( nullptr, nullptr, GstTypes::uniquePtrRef( initError ) ) )
+            if ( gst_init_check( nullptr, nullptr, GstTypes::uniquePtrRef( initError ) ) == FALSE )
             {
                GstTypes::logger().error( "GStreamerStatic::GStreamerStatic(): gst_init_check error: " + GstTypes::gerrorToString( initError.get() ) );
             }
@@ -41,14 +41,14 @@ namespace {  // anonymous namespace
                 poco_information(GstTypes::logger(), "GStreamerStatic::GStreamerStatic() - gst_is_initialized() = " + GstTypes::boolToString( gst_is_initialized() ) );
             }
             // Only deinit GStreamer if it was initialized
-            if ( gst_is_initialized() )
+            if ( gst_is_initialized() == TRUE )
             {
                 gst_deinit();
             }
         }
-    };
+    };  // struct GStreamerStatic
 
-}  // anonymous namespace
+}  // namespace
 
 static GStreamerStatic gstreamerStatic;
 
@@ -63,4 +63,4 @@ namespace GstStatic
     {
         return GstTypes::gcharToString( GstTypes::GCharPtr( gst_version_string() ).get() );
     }
-}
+}  // namespace GstStatic

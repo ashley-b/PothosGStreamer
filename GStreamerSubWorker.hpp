@@ -14,21 +14,21 @@ private:
     GStreamer *m_gstreamerBlock;
     const std::string m_name;
 
-    GStreamerSubWorker(const GStreamerSubWorker&) = delete; // Non construction-copyable
-    GStreamerSubWorker& operator=(const GStreamerSubWorker&) = delete; // Non copyable
-
 protected:
     GStreamerSubWorker(GStreamer *gstreamerBlock, const std::string &name);
 
 public:
-    virtual ~GStreamerSubWorker(void) = default;
+    GStreamerSubWorker(const GStreamerSubWorker&) = delete; // Non construction-copyable
+    GStreamerSubWorker& operator=(const GStreamerSubWorker&) = delete; // Non copyable
 
-    GStreamer* gstreamerBlock(void) const;
-    const std::string& name(void) const;
+    virtual ~GStreamerSubWorker() = default;
+
+    GStreamer* gstreamerBlock() const;
+    const std::string& name() const;
     std::string funcName(const std::string &funcName) const;
-    virtual void activate(void);
-    virtual void deactivate(void);
-    virtual bool blocking(void);
+    virtual void activate();
+    virtual void deactivate();
+    virtual bool blocking();
     virtual void work(long long maxTimeoutNs) = 0;
 
 };  // class GStreamerSubWorker

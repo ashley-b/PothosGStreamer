@@ -11,6 +11,7 @@
 #include <iostream>
 #include <complex>
 #include <fstream>
+#include <functional>
 
 using json = nlohmann::json;
 
@@ -42,7 +43,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
 
         auto obj = GstTypes::objectFrom(&value);
         POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
-        POTHOS_TEST_EQUAL(obj.extract< std::string >().c_str(), testString);
+        POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
 
         g_value_unset (&value);
     }
@@ -50,7 +51,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
     {
         auto obj = GstTypes::gcharToObject( testString.c_str() );
         POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
-        POTHOS_TEST_EQUAL(obj.extract< std::string >().c_str(), testString);
+        POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
     }
 
     // GValue enum test
@@ -426,12 +427,16 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_tag_sink)
             bool foundRaw = false;
             for (const auto & keyword :  keywords )
             {
-                const auto keywordStr( keyword.extract< std::string >() );
+                const auto &keywordStr( keyword.extract< std::string >() );
                 if ( keywordStr == "Fake")
+                {
                     foundFake = true;
+                }
                 else
                 if ( keywordStr == "Raw")
+                {
                     foundRaw = true;
+                }
             }
             POTHOS_TEST_TRUE( foundFake );
             POTHOS_TEST_TRUE( foundRaw );
@@ -480,7 +485,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_passthrough)
     auto collectorSink = Pothos::BlockRegistry::make( "/blocks/collector_sink", "int8" );
 
     json testPlan;
-    testPlan[ "enablePackets"] = true;
+    testPlan[ "enablePackets" ] = true;
 
     auto expected = feederSource.call("feedTestPlan", testPlan.dump());
 

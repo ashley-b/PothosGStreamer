@@ -32,7 +32,7 @@ namespace GstTypes
 
     constexpr bool debug_extra = false;
 
-    Poco::Logger &logger(void);
+    Poco::Logger &logger();
 
     std::string boolToString(bool x);
 
@@ -50,19 +50,20 @@ namespace GstTypes
         T *_ptr;
         typename T::element_type *_ref;
     public:
-        typedef typename T::element_type element_type;
+        using element_type = typename T::element_type;
 
         UniquePtrRef& operator=(const UniquePtrRef&) = delete;
         UniquePtrRef(const UniquePtrRef&) = delete;
         UniquePtrRef(UniquePtrRef&&) = default;
+        UniquePtrRef& operator=(UniquePtrRef&&) = default;
 
-        UniquePtrRef(T &ptr) noexcept :
+        explicit UniquePtrRef(T &ptr) noexcept :
             _ptr( std::addressof( ptr ) ),
             _ref( nullptr )
         {
         }
 
-        ~UniquePtrRef(void) noexcept
+        ~UniquePtrRef() noexcept
         {
             _ptr->reset( _ref );
         }
@@ -72,7 +73,7 @@ namespace GstTypes
             return this->ref();
         }
 
-        element_type** ref(void) noexcept
+        element_type** ref() noexcept
         {
             return &_ref;
         }
@@ -181,7 +182,7 @@ namespace GstTypes
 
     Pothos::ObjectKwargs segmentToObjectKwargs(const GstSegment *segment);
 
-    Pothos::Object objectFrom(const GValue *g_val);
+    Pothos::Object objectFrom(const GValue *gvalue);
     Pothos::ObjectKwargs objectFrom(const GstTagList *tags);
 
 }  // namespace GstTypes

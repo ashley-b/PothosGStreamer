@@ -34,8 +34,8 @@ private:
     void setState(const std::string &state);
     static void for_each_pipeline_element(const GValue *value, gpointer data);
     void findSourcesAndSinks(GstBin *bin);
-    void createPipeline(void);
-    void destroyPipeline(void);
+    void createPipeline();
+    void destroyPipeline();
     Pothos::ObjectKwargs gstMessageInfoWarnError( GstMessage *message );
 
 public:
@@ -43,22 +43,22 @@ public:
     GStreamer& operator=(const GStreamer&) = delete;
 
     GStreamer(const std::string &pipelineString);
-    ~GStreamer(void) override;
+    ~GStreamer() override;
 
     static Block *make(const std::string &pipelineString);
 
     GstElement* getPipelineElementByName(const std::string &name) const;
 
-    std::string getPipelineString(void) const;
-    GstPipeline* getPipeline(void) const;
-    Pothos::Object getPipelineLatency(void) const;
+    std::string getPipelineString() const;
+    GstPipeline* getPipeline() const;
+    Pothos::Object getPipelineLatency() const;
     int64_t getPipelinePosition(const std::string &format) const;
     int64_t getPipelineDuration(const std::string &format) const;
 
-    void activate(void) override;
-    void deactivate(void) override;
+    void activate() override;
+    void deactivate() override;
 
     void propagateLabels(const Pothos::InputPort *input) override;
-    void work(void) override;
+    void work() override;
 
 };  // class GStreamer
