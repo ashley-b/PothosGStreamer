@@ -24,12 +24,12 @@ private:
     std::vector< std::unique_ptr< GStreamerSubWorker > > m_gstreamerSubWorkers;
     int m_blockingNodes;
     bool m_pipeline_active;
-    bool m_work_warn_stopped;
     GstState m_gstState;
 
     void gstChangeState( GstState state, bool throwError );
-    Pothos::ObjectKwargs tryFormatGstMessageToObject(GstMessage *gstMessage);
-    Pothos::Object convertGstMessageToObject(GstMessage *gstMessage);
+    void workerStop(const std::string &reason);
+    Pothos::ObjectKwargs gstMessageToFormattedObject(GstMessage *gstMessage);
+    Pothos::Object gstMessageToObject(GstMessage *gstMessage);
     void processGStreamerMessagesTimeout(GstClockTime timeout);
     void setState(const std::string &state);
     static void for_each_pipeline_element(const GValue *value, gpointer data);

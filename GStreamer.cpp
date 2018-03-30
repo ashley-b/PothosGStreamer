@@ -66,7 +66,6 @@ GStreamer::GStreamer(const std::string &pipelineString) :
     m_gstreamerSubWorkers( ),
     m_blockingNodes( 0 ),
     m_pipeline_active( false ),
-    m_work_warn_stopped( ),
     m_gstState( GST_STATE_PLAYING )
 {
     if ( GstStatic::getInitError() != nullptr )
@@ -269,75 +268,53 @@ Pothos::ObjectKwargs GStreamer::gstMessageInfoWarnError( GstMessage *message )
 {
     GstTypes::GErrorPtr errorPtr;
     GstTypes::GCharPtr dbgInfoPtr;
-    std::string messageType;
-    switch ( GST_MESSAGE_TYPE( message ) )
-    {
-        case GST_MESSAGE_ERROR:
-        {
-            messageType = "ERROR";
-            gst_message_parse_error( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
-            break;
-        }
-        case GST_MESSAGE_WARNING:
-        {
-            messageType = "WARNING";
-            gst_message_parse_warning( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
-            break;
-        }
-        case GST_MESSAGE_INFO:
-        {
-            messageType = "INFO";
-            gst_message_parse_info( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
-            break;
-        }
-        default:
-            return Pothos::ObjectKwargs();
-    }
 
-    std::ostringstream error_message;
-    error_message << "GStreamer " << messageType;
+    using PriorityInfo = std::pair< const char *, Poco::Message::Priority >;
+
+    const auto logLevel = [ &errorPtr, &dbgInfoPtr, message ]() -> PriorityInfo
+    {
+        switch ( GST_MESSAGE_TYPE( message ) )
+        {
+            case GST_MESSAGE_ERROR:
+            {
+                gst_message_parse_error( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+                return { "ERROR", Poco::Message::PRIO_ERROR };
+            }
+            case GST_MESSAGE_WARNING:
+            {
+                gst_message_parse_warning( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+                return { "WARNING", Poco::Message::PRIO_WARNING };
+            }
+            case GST_MESSAGE_INFO:
+            {
+                gst_message_parse_info( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+                return { "INFO", Poco::Message::PRIO_INFORMATION };
+            }
+            default:
+                throw Pothos::RuntimeException("GStreamer::gstMessageInfoWarnError", "GStreamer message does not contains a GError");
+        }
+    } ( );
+
+    const std::string prefix( std::string( "GStreamer " ) + logLevel.first + ": " );
 
     GstTypes::GCharPtr objectName( gst_object_get_name( message->src ) );
-    error_message << " from element: " << objectName.get() << ": code = " << errorPtr->code;
-    error_message << ", message = " << errorPtr->message;
+    std::ostringstream error_message;
+    error_message << prefix;
+    error_message << "From element: " << objectName.get();
+    error_message << ", Code: " << errorPtr->code;
+    error_message << ", Message: " << errorPtr->message;
 
     Pothos::ObjectKwargs objectMap;
     objectMap[ "message" ] = GstTypes::gcharToObject( errorPtr->message );
     objectMap[ "code"    ] = Pothos::Object( errorPtr->code );
 
     std::ostringstream debug_message;
-    const std::string debug_str( (dbgInfoPtr.get()) ? dbgInfoPtr.get() : "none" );
-    debug_message << "GStreamer Debugging info: " << debug_str;
+    debug_message << prefix << "Debugging info: " << (( dbgInfoPtr ) ? dbgInfoPtr.get() : "none");
 
     objectMap[ "debug_message" ] = GstTypes::gcharToObject( dbgInfoPtr.get() );
 
-    switch ( GST_MESSAGE_TYPE( message ) )
-    {
-        case GST_MESSAGE_ERROR:
-        {
-            poco_error( GstTypes::logger(), error_message.str() );
-            poco_error( GstTypes::logger(), debug_message.str() );
-
-            // Stop pipeline if there was an error
-            m_pipeline_active = false;
-
-            break;
-        }
-        case GST_MESSAGE_WARNING:
-        {
-            poco_warning( GstTypes::logger(), error_message.str() );
-            poco_warning( GstTypes::logger(), debug_message.str() );
-            break;
-        }
-        case GST_MESSAGE_INFO:
-        {
-            poco_information( GstTypes::logger(), error_message.str() );
-            poco_information( GstTypes::logger(), debug_message.str() );
-            break;
-        }
-        default:
-            break;
-    }
+    GstTypes::logger().log( Poco::Message( GstTypes::logger().name(), error_message.str(), logLevel.second ) );
+    GstTypes::logger().log( Poco::Message( GstTypes::logger().name(), debug_message.str(), logLevel.second ) );
 
     return objectMap;
 }
@@ -351,7 +328,15 @@ static Pothos::ObjectKwargs clockInfo(GstClock *clock)
     return objectMsgMap;
 }
 
-Pothos::ObjectKwargs GStreamer::tryFormatGstMessageToObject(GstMessage *gstMessage)
+void GStreamer::workerStop(const std::string & reason)
+{
+    // Stop pipeline if there was an error
+    m_pipeline_active = false;
+
+    poco_warning( GstTypes::logger(), "Pipeline has stopped, reason: " + reason + ". This block will do nothing for the remainder of this running topology" );
+}
+
+Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessage)
 {
     switch ( GST_MESSAGE_TYPE( gstMessage ) )
     {
@@ -362,6 +347,7 @@ Pothos::ObjectKwargs GStreamer::tryFormatGstMessageToObject(GstMessage *gstMessa
 
         case GST_MESSAGE_ERROR:
         {
+            workerStop( "GStreamer Error" );
             return gstMessageInfoWarnError( gstMessage );
         }
 
@@ -410,7 +396,7 @@ Pothos::ObjectKwargs GStreamer::tryFormatGstMessageToObject(GstMessage *gstMessa
 
         case GST_MESSAGE_EOS:
         {
-            m_pipeline_active = false;
+            workerStop( "End of stream" );
             return Pothos::ObjectKwargs();
         }
 
@@ -556,7 +542,7 @@ Pothos::ObjectKwargs GStreamer::tryFormatGstMessageToObject(GstMessage *gstMessa
     return Pothos::ObjectKwargs();
 }
 
-Pothos::Object GStreamer::convertGstMessageToObject(GstMessage *gstMessage)
+Pothos::Object GStreamer::gstMessageToObject(GstMessage *gstMessage)
 {
     const std::string message_type_name( GST_MESSAGE_TYPE_NAME( gstMessage ) );
 
@@ -581,7 +567,7 @@ Pothos::Object GStreamer::convertGstMessageToObject(GstMessage *gstMessage)
         objectMap[ "structureObject" ] = structureObject;
     }
 
-    Pothos::ObjectKwargs objectMsgMap = tryFormatGstMessageToObject(gstMessage);
+    Pothos::ObjectKwargs objectMsgMap = gstMessageToFormattedObject(gstMessage);
 
     objectMap[ "body" ] = Pothos::Object::make( objectMsgMap );
 
@@ -592,23 +578,28 @@ void GStreamer::processGStreamerMessagesTimeout(GstClockTime timeout)
 {
     while (true)
     {
-        auto gstMessage =
+        using GstMessagePtr = std::unique_ptr < GstMessage, GstTypes::Deleter< GstMessage, gst_message_unref > >;
+        GstMessagePtr gstMessage(
             gst_bus_timed_pop(
                 m_bus,
                 timeout
-            );
+            )
+        );
         // No more message bail
-        if ( gstMessage == nullptr ) return;
+        if ( gstMessage.get() == nullptr )
+        {
+            return;
+        }
 
         // Only block for time out period on the first loop iteration
         timeout = 0;
 
-        auto object = convertGstMessageToObject( gstMessage );
+        auto object = gstMessageToObject( gstMessage.get() );
 
         if ( isActive() )
         {
             // Dedicated signals we send
-            switch ( GST_MESSAGE_TYPE( gstMessage ) )
+            switch ( GST_MESSAGE_TYPE( gstMessage.get() ) )
             {
                 case GST_MESSAGE_EOS:
                     this->emitSignal( signalEosName, object );
@@ -624,7 +615,6 @@ void GStreamer::processGStreamerMessagesTimeout(GstClockTime timeout)
             // Push the GStreamer message out as a Pothos signal
             this->emitSignal(signalBusName, object);
         }
-        gst_message_unref( gstMessage );
     }
 }
 
@@ -810,7 +800,6 @@ void GStreamer::activate(void)
         subWorker->activate();
     }
 
-    m_work_warn_stopped = true;
     try
     {
         gstChangeState( m_gstState, true );
@@ -845,11 +834,6 @@ void GStreamer::work(void)
 {
     if ( m_pipeline_active == false )
     {
-        if ( m_work_warn_stopped )
-        {
-            poco_warning( GstTypes::logger(), "GStreamer::work() pipeline and/or bus has stopped, this block will do nothing for the remainder of this running topology" );
-            m_work_warn_stopped = false;
-        }
         return;
     }
 
