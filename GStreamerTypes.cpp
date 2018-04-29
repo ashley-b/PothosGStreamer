@@ -373,7 +373,7 @@ namespace GstTypes
         if ( type == GST_TYPE_DATE_TIME )
         {
             auto dateTime = static_cast< GstDateTime * >( boxedData );
-            return gcharToObject( GCharPtr( gst_date_time_to_iso8601_string (dateTime ) ).get() );
+            return gcharToObject( GCharPtr( gst_date_time_to_iso8601_string( dateTime ) ).get() );
         }
 
         if ( type == GST_TYPE_SAMPLE )
@@ -384,7 +384,6 @@ namespace GstTypes
             sampleMap[ "structure" ] = objectFrom( gst_sample_get_info( gst_sample ) );
             sampleMap[ "buffer"    ] = Pothos::Object::make( GstTypes::makePacketFromGstBuffer( gst_sample_get_buffer( gst_sample ) ) );
 
-            // Handle sub struct of segment
             {
                 const auto segment = gst_sample_get_segment( gst_sample );
                 sampleMap[ "segment" ] = Pothos::Object::make( segmentToObjectKwargs( segment ) );

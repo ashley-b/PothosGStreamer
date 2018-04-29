@@ -148,40 +148,45 @@ void GStreamer::for_each_pipeline_element(const GValue *value, gpointer data)
 void GStreamer::findSourcesAndSinks(GstBin *bin)
 {
     const std::string funcName("GStreamer::findSourcesAndSinks(GstBin *bin)");
-    GstIterator *gstIterator = gst_bin_iterate_elements( bin );
-    if ( gstIterator == nullptr )
+    GstTypes::GstIteratorPtr gstIterator( gst_bin_iterate_elements( bin ) );
+    if ( gstIterator.get() == nullptr )
     {
         throw Pothos::Exception( funcName, "gst_bin_iterate_elements returned null" );
     }
 
-    constexpr int RESYNC_RETRY = 1000;
-    for (int i = 0; i < RESYNC_RETRY; ++i)
+    for (int i = 0; i < 100; ++i)
     {
-        auto gstIteratorRes = gst_iterator_foreach( gstIterator, for_each_pipeline_element, this );
-        if ( gstIteratorRes == GST_ITERATOR_RESYNC )
+        const auto gstIteratorRes = gst_iterator_foreach( gstIterator.get(), for_each_pipeline_element, this );
+        switch ( gstIteratorRes )
         {
-            gst_iterator_resync( gstIterator );
-            continue;
-        }
-
-        gst_iterator_free( gstIterator );
-
-        if ( gstIteratorRes == GST_ITERATOR_ERROR )
-        {
-            throw Pothos::Exception( funcName, "Error iterating elements to find sources and sinks: " + std::to_string( gstIteratorRes ) );
-        }
-
-        // Count how many blocking sub workers we have for timing
-        m_blockingNodes = 0;
-        for (auto &subWorker : m_gstreamerSubWorkers )
-        {
-            if ( subWorker->blocking() )
+            case GST_ITERATOR_RESYNC:
             {
-                ++m_blockingNodes;
+                gst_iterator_resync( gstIterator.get() );
+                continue;
             }
-        }
-        return;
 
+            case GST_ITERATOR_ERROR:
+            {
+                throw Pothos::Exception( funcName, "Error iterating elements to find sources and sinks: " + std::to_string( gstIteratorRes ) );
+            }
+
+            case GST_ITERATOR_OK:
+            case GST_ITERATOR_DONE:
+            {
+                // Count how many blocking sub workers we have for timing
+                m_blockingNodes = 0;
+                for (auto &subWorker : m_gstreamerSubWorkers )
+                {
+                    if ( subWorker->blocking() )
+                    {
+                        ++m_blockingNodes;
+                    }
+                }
+                return;
+            }
+            default:
+                throw Pothos::RuntimeException( funcName, "Unkown return code from gst_iterator_foreach " + std::to_string( gstIteratorRes ) );
+        }
     }
     // If we made it here we had too many retries of GST_ITERATOR_RESYNC
     throw Pothos::RuntimeException( funcName, "Too many GST_ITERATOR_RESYNC iterating elements to find sources and sinks" );
@@ -192,7 +197,7 @@ void GStreamer::createPipeline()
     const std::string funcName("GStreamer::createPipeline");
 
     GstTypes::GErrorPtr errorPtr;
-    std::unique_ptr< GstElement, GstTypes::Deleter< void, gst_object_unref > >element (
+    std::unique_ptr< GstElement, GstTypes::Deleter< void, gst_object_unref > > element(
         gst_parse_launch_full( m_pipeline_string.c_str(), nullptr, GST_PARSE_FLAG_FATAL_ERRORS, GstTypes::uniquePtrRef(errorPtr) )
     );
 

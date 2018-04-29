@@ -101,7 +101,7 @@ namespace
 
         bool sendEos()
         {
-            auto flow_return = gst_app_src_end_of_stream( gstAppSource() );
+            const auto flow_return = gst_app_src_end_of_stream( gstAppSource() );
             if ( flow_return != GST_FLOW_OK )
             {
                 const auto flowQuark = GstTypes::gquarkToString( gst_flow_to_quark( flow_return ) );
@@ -240,6 +240,8 @@ namespace
                     GST_TAG_MERGE_APPEND,
                     GST_TAG_APPLICATION_DATA, &value
                 );
+
+                g_value_unset( &value );
             }
 
             GstEvent *event = gst_event_new_tag( gstTagList );

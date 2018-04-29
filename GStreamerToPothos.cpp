@@ -101,7 +101,7 @@ namespace
                 return true;
             }
 
-            if ( ( m_lastCaps.operator bool() )  && ( gst_caps_is_equal( caps, m_lastCaps.get() ) == TRUE ) )
+            if ( ( m_lastCaps.operator bool() ) && ( gst_caps_is_equal( caps, m_lastCaps.get() ) == TRUE ) )
             {
                 return false;
             }
@@ -293,7 +293,7 @@ namespace
                 packet = GstTypes::makePacketFromGstBuffer( gst_buffer );
 
                 auto segment = gst_sample_get_segment( gst_sample );
-                packet.metadata[ GstTypes::PACKET_META_SEGMENT ] = Pothos::Object::make( GstTypes::segmentToObjectKwargs( segment ));
+                packet.metadata[ GstTypes::PACKET_META_SEGMENT ] = Pothos::Object::make( GstTypes::segmentToObjectKwargs( segment ) );
 
                 auto caps = gst_sample_get_caps( gst_sample );
                 m_runState->queryCaps(caps, packet);

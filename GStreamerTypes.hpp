@@ -42,6 +42,8 @@ namespace GstTypes
             Fn(static_cast<T*>(p));
         }
     };
+
+    using GstIteratorPtr = std::unique_ptr < GstIterator, Deleter< GstIterator, gst_iterator_free > >;
     using GCharPtr = std::unique_ptr < gchar, Deleter< void, g_free > >;
     using GErrorPtr = std::unique_ptr < GError, Deleter< GError, g_error_free > >;
 
@@ -63,7 +65,7 @@ namespace GstTypes
         {
         }
 
-        ~UniquePtrRef() noexcept
+        ~UniquePtrRef()
         {
             _ptr->reset( _ref );
         }
@@ -101,7 +103,7 @@ namespace GstTypes
     Pothos::Object objectFrom(const GstStructure *gstStructure);
 
     template< typename Iterator, class UnaryFunction >
-    std::string joinStrings(const Iterator&& begin, const Iterator&& end, const std::string& separator, UnaryFunction func )
+    std::string joinStrings(const Iterator begin, const Iterator end, const std::string& separator, UnaryFunction func )
     {
         std::string str;
 
