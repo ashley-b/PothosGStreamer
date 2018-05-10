@@ -187,4 +187,37 @@ namespace GstTypes
     Pothos::Object objectFrom(const GValue *gvalue);
     Pothos::ObjectKwargs objectFrom(const GstTagList *tags);
 
+    struct GVal
+    {
+        ::GValue value;
+
+        GVal() : value( G_VALUE_INIT )
+        {
+        }
+
+        GVal(GType g_type) : value( G_VALUE_INIT )
+        {
+            g_value_init( &value, g_type );
+        }
+
+        GVal(const GVal&) = delete;
+        GVal& operator=(const GVal&) = delete;
+        GVal(GVal &&) = delete;
+
+        ~GVal()
+        {
+            g_value_unset( &value );
+        }
+
+        Pothos::Object toPothosObject() const
+        {
+            return objectFrom( &value );
+        }
+
+        ::GValue* operator()()
+        {
+            return &value;
+        }
+    };  // struct GVal
+
 }  // namespace GstTypes

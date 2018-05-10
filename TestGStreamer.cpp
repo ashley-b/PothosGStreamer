@@ -23,29 +23,22 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
 {
     const std::string testString( "test 1, 2" );
     {
-        GValue value = G_VALUE_INIT;
+        GstTypes::GVal value(G_TYPE_STRING);
+        g_value_set_static_string(value(), testString.c_str() );
 
-        g_value_init(&value, G_TYPE_STRING);
-        g_value_set_static_string(&value, testString.c_str() );
-
-        auto obj = GstTypes::objectFrom(&value);
+        auto obj = GstTypes::objectFrom(value());
         POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
         POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
-
-        g_value_unset(&value);
     }
 
     {
         GString *gString = g_string_new(testString.c_str());
-        GValue value = G_VALUE_INIT;
-        g_value_init (&value, G_TYPE_GSTRING);
-        g_value_take_boxed (&value, gString);
+        GstTypes::GVal value(G_TYPE_GSTRING);
+        g_value_take_boxed(value(), gString);
 
-        auto obj = GstTypes::objectFrom(&value);
+        auto obj = GstTypes::objectFrom(value());
         POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
         POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
-
-        g_value_unset (&value);
     }
 
     {
@@ -56,13 +49,12 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
 
     // GValue enum test
     {
-        GValue gvalue = G_VALUE_INIT;
-        g_value_init(&gvalue, GST_TYPE_STATE);
+        GstTypes::GVal gvalue(GST_TYPE_STATE);
 
         constexpr gint testValue = GST_STATE_PLAYING;
-        g_value_set_enum(&gvalue, GST_STATE_PLAYING);
+        g_value_set_enum(gvalue(), GST_STATE_PLAYING);
 
-        auto obj = GstTypes::objectFrom(&gvalue);
+        auto obj = gvalue.toPothosObject();
         std::cerr <<  obj.toString() << std::endl;
 
         const auto args = obj.convert< Pothos::ObjectKwargs >();
@@ -93,18 +85,15 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
             const auto string = stringIt->second.convert< std::string >();
             POTHOS_TEST_EQUAL( string, "GST_STATE_PLAYING" );
         }
-
-        g_value_unset( &gvalue );
     }
 
     // GValue flag test
     {
-        GValue gvalue = G_VALUE_INIT;
-        g_value_init(&gvalue, GST_TYPE_ELEMENT_FLAGS);
+        GstTypes::GVal gvalue( GST_TYPE_ELEMENT_FLAGS );
         constexpr guint testValue = 0xffff;
-        g_value_set_flags(&gvalue, testValue);
+        g_value_set_flags(gvalue(), testValue);
 
-        auto obj = GstTypes::objectFrom(&gvalue);
+        auto obj = gvalue.toPothosObject();
         std::cerr <<  obj.toString() << std::endl;
 
         const auto args = obj.convert< Pothos::ObjectKwargs >();
@@ -136,8 +125,6 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
             //const auto value = stringIt->second.convert< std::string >();
             //POTHOS_TEST_EQUAL( value, "GST_STATE_PLAYING" );
         }
-
-        g_value_unset(&gvalue);
     }
 }
 

@@ -231,17 +231,14 @@ namespace
                     info
                 );
 
-                GValue value = G_VALUE_INIT;
-                g_value_init( &value, GST_TYPE_SAMPLE );
-                g_value_set_boxed( &value, sample );
+                GstTypes::GVal value( GST_TYPE_SAMPLE );
+                g_value_set_boxed( value(), sample );
 
                 gst_tag_list_add_value(
                     gstTagList,
                     GST_TAG_MERGE_APPEND,
-                    GST_TAG_APPLICATION_DATA, &value
+                    GST_TAG_APPLICATION_DATA, value()
                 );
-
-                g_value_unset( &value );
             }
 
             GstEvent *event = gst_event_new_tag( gstTagList );
