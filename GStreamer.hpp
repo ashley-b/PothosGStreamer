@@ -26,7 +26,7 @@ private:
     bool m_pipeline_active;
     GstState m_gstState;
 
-    void gstChangeState( GstState state, bool throwError );
+    void gstChangeState( GstState state );
     void workerStop(const std::string &reason);
     Pothos::ObjectKwargs gstMessageToFormattedObject(GstMessage *gstMessage);
     Pothos::Object gstMessageToObject(GstMessage *gstMessage);

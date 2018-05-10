@@ -102,7 +102,14 @@ GStreamer::GStreamer(const std::string &pipelineString) :
 
 GStreamer::~GStreamer()
 {
-    destroyPipeline();
+    try
+    {
+        destroyPipeline();
+    }
+    catch (const Pothos::Exception &e)
+    {
+        poco_error( GstTypes::logger(), e.displayText() + ". Pipeline:  " + getPipelineString() );
+    }
 }
 
 Pothos::Block *GStreamer::make(const std::string &pipelineString)
@@ -248,7 +255,7 @@ void GStreamer::destroyPipeline()
 
     // Shutdown the pipeline and free any state info in it
     // N.B. This must be done so gst_object_unref actually free the object
-    gstChangeState( GST_STATE_NULL, false );
+    gstChangeState( GST_STATE_NULL );
 
     if ( m_bus != nullptr )
     {
@@ -639,7 +646,7 @@ void GStreamer::setState(const std::string &state)
     // Can only change the state if the pipeline is running
     if ( m_pipeline_active )
     {
-        this->gstChangeState( it->second, true );
+        this->gstChangeState( it->second );
     }
     m_gstState = it->second;
 }
@@ -743,7 +750,7 @@ int64_t GStreamer::getPipelineDuration(const std::string &format) const
     return -1;
 }
 
-void GStreamer::gstChangeState( GstState state, bool throwError )
+void GStreamer::gstChangeState( GstState state )
 {
     const std::string funcName( "GStreamer::gstChangeState()" );
     if ( m_pipeline == nullptr )
@@ -766,11 +773,11 @@ void GStreamer::gstChangeState( GstState state, bool throwError )
         case GST_STATE_CHANGE_ASYNC:
             return;
         case GST_STATE_CHANGE_NO_PREROLL:
-            poco_information(
+            poco_warning(
                 GstTypes::logger(),
                 funcName +
                     " The state change succeeded but the element cannot produce data in GST_STATE_PAUSED."
-                    "This typically happens with live sources."
+                    " This typically happens with live sources."
             );
             poco_information(
                 GstTypes::logger(),
@@ -780,12 +787,8 @@ void GStreamer::gstChangeState( GstState state, bool throwError )
             errorStr = gst_element_state_change_return_get_name( stateChangeReturn );
             break;
     }
-    poco_error( GstTypes::logger(), funcName + " error: "+errorStr+". Pipeline: "+getPipelineString() );
 
-    if ( throwError )
-    {
-        throw Pothos::RuntimeException( funcName, "GStreamer state change error: " + errorStr );
-    }
+    throw Pothos::RuntimeException( funcName, "GStreamer state change error: " + errorStr );
 }
 
 void GStreamer::activate()
@@ -803,7 +806,7 @@ void GStreamer::activate()
 
     try
     {
-        gstChangeState( m_gstState, true );
+        gstChangeState( m_gstState );
     }
     catch (...)
     {
