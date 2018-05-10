@@ -134,10 +134,10 @@ void GStreamer::for_each_pipeline_element(const GValue *value, gpointer data)
     auto gstreamer = static_cast< GStreamer* >( data );
 
     {
-        auto PothosToGStreamer = PothosToGStreamer::makeIfType( gstreamer, gstElement );
-        if ( PothosToGStreamer )
+        auto pothosToGStreamer = PothosToGStreamer::makeIfType( gstreamer, gstElement );
+        if ( pothosToGStreamer )
         {
-            gstreamer->m_gstreamerSubWorkers.push_back( std::move( PothosToGStreamer ) );
+            gstreamer->m_gstreamerSubWorkers.push_back( std::move( pothosToGStreamer ) );
             return;
         }
     }
