@@ -32,7 +32,6 @@ private:
     Pothos::Object gstMessageToObject(GstMessage *gstMessage);
     void processGStreamerMessagesTimeout(GstClockTime timeout);
     void setState(const std::string &state);
-    static void for_each_pipeline_element(const GValue *value, gpointer data);
     void findSourcesAndSinks(GstBin *bin);
     void createPipeline();
     void destroyPipeline();

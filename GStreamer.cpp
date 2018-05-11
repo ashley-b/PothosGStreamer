@@ -122,34 +122,33 @@ GstElement* GStreamer::getPipelineElementByName(const std::string &name) const
     return gst_bin_get_by_name( GST_BIN( getPipeline() ), name.c_str() );
 }
 
-void GStreamer::for_each_pipeline_element(const GValue *value, gpointer data)
+template< class Fn>
+GstIteratorResult gstIteratorForeach(GstIterator* gstIterator, Fn f)
 {
-    auto gstElement = GST_ELEMENT( g_value_get_object( value ) );
-    if ( gstElement == nullptr )
-    {
-        poco_warning(GstTypes::logger(), "for_each_pipeline_element: object is not a GstElement");
-        return;
-    }
+    GstTypes::GVal item;
+    GstIteratorResult result;
 
-    auto gstreamer = static_cast< GStreamer* >( data );
-
+    while ( (result = gst_iterator_next(gstIterator, &item.value)) == GST_ITERATOR_OK )
     {
-        auto pothosToGStreamer = PothosToGStreamer::makeIfType( gstreamer, gstElement );
-        if ( pothosToGStreamer )
+        // RAII safe guard to call g_value_reset between interactions
+        struct ValueUnset final
         {
-            gstreamer->m_gstreamerSubWorkers.push_back( std::move( pothosToGStreamer ) );
-            return;
-        }
+            GstTypes::GVal *m_value;
+            ValueUnset(GstTypes::GVal *value) noexcept : m_value(value)
+            {
+            }
+            ~ValueUnset()
+            {
+                m_value->reset();
+                poco_warning(GstTypes::logger(), "gstreamer_foreach calling g_value_reset");
+            }
+        } value_unset(&item);
+        poco_warning(GstTypes::logger(), "gstreamer_foreach calling f() - pre");
+        f(&item.value);
+        poco_warning(GstTypes::logger(), "gstreamer_foreach calling f() - post");
     }
 
-    {
-        auto gstreamerToPothos = GStreamerToPothos::makeIfType( gstreamer, gstElement );
-        if ( gstreamerToPothos )
-        {
-            gstreamer->m_gstreamerSubWorkers.push_back( std::move( gstreamerToPothos ) );
-            return;
-        }
-    }
+    return result;
 }
 
 void GStreamer::findSourcesAndSinks(GstBin *bin)
@@ -161,42 +160,64 @@ void GStreamer::findSourcesAndSinks(GstBin *bin)
         throw Pothos::Exception( funcName, "gst_bin_iterate_elements returned null" );
     }
 
-    for (int i = 0; i < 100; ++i)
+    auto forEachElement = [&] (const GValue *value)
     {
-        const auto gstIteratorRes = gst_iterator_foreach( gstIterator.get(), for_each_pipeline_element, this );
-        switch ( gstIteratorRes )
+        auto gstElement = GST_ELEMENT( g_value_get_object( value ) );
+        if ( gstElement == nullptr )
         {
-            case GST_ITERATOR_RESYNC:
-            {
-                gst_iterator_resync( gstIterator.get() );
-                continue;
-            }
+            poco_warning(GstTypes::logger(), "for_each_pipeline_element: object is not a GstElement");
+            return;
+        }
 
-            case GST_ITERATOR_ERROR:
+        {
+            auto pothosToGStreamer = PothosToGStreamer::makeIfType( this, gstElement );
+            if ( pothosToGStreamer )
             {
-                throw Pothos::Exception( funcName, "Error iterating elements to find sources and sinks: " + std::to_string( gstIteratorRes ) );
-            }
-
-            case GST_ITERATOR_OK:
-            case GST_ITERATOR_DONE:
-            {
-                // Count how many blocking sub workers we have for timing
-                m_blockingNodes = 0;
-                for (auto &subWorker : m_gstreamerSubWorkers )
-                {
-                    if ( subWorker->blocking() )
-                    {
-                        ++m_blockingNodes;
-                    }
-                }
+                this->m_gstreamerSubWorkers.push_back( std::move( pothosToGStreamer ) );
                 return;
             }
-            default:
-                throw Pothos::RuntimeException( funcName, "Unkown return code from gst_iterator_foreach " + std::to_string( gstIteratorRes ) );
         }
+
+        {
+            auto gstreamerToPothos = GStreamerToPothos::makeIfType( this, gstElement );
+            if ( gstreamerToPothos )
+            {
+                this->m_gstreamerSubWorkers.push_back( std::move( gstreamerToPothos ) );
+                return;
+            }
+        }
+    };
+
+    const auto gstIteratorRes = gstIteratorForeach(gstIterator.get(), forEachElement);
+    switch ( gstIteratorRes )
+    {
+        case GST_ITERATOR_RESYNC:
+        {
+            throw Pothos::Exception( funcName, "Error iterating elements to find sources and sinks: GST_ITERATOR_RESYNC" );
+        }
+
+        case GST_ITERATOR_ERROR:
+        {
+            throw Pothos::Exception( funcName, "Error iterating elements to find sources and sinks: GST_ITERATOR_ERROR" );
+        }
+
+        case GST_ITERATOR_OK:
+        case GST_ITERATOR_DONE:
+        {
+            // Count how many blocking sub workers we have for timing
+            m_blockingNodes = 0;
+            for (auto &subWorker : m_gstreamerSubWorkers )
+            {
+                if ( subWorker->blocking() )
+                {
+                    ++m_blockingNodes;
+                }
+            }
+            return;
+        }
+        default:
+            throw Pothos::RuntimeException( funcName, "Unkown return code from gst_iterator_foreach " + std::to_string( gstIteratorRes ) );
     }
-    // If we made it here we had too many retries of GST_ITERATOR_RESYNC
-    throw Pothos::RuntimeException( funcName, "Too many GST_ITERATOR_RESYNC iterating elements to find sources and sinks" );
 }
 
 void GStreamer::createPipeline()
