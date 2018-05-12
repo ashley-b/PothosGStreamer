@@ -260,7 +260,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_source)
 
     auto tempFile = Poco::TemporaryFile();
 
-    auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", "appsrc name=sink1 ! filesink location="+tempFile.path() );
+    auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", "appsrc name=sink1 ! filesink location=" + tempFile.path() );
 
     // Run the topology
     std::cout << "Run the topology\n";
@@ -273,28 +273,19 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_source)
         //POTHOS_TEST_TRUE(topology.waitInactive());
     }
 
+    const auto fileSize = tempFile.getSize();
+
+    //Check output file size is the same as the input test data
+    POTHOS_TEST_EQUAL( fileSize , testData.size() );
+
     std::fstream fs;
     fs.open( tempFile.path(), std::fstream::in | std::fstream::binary );
     POTHOS_TEST_TRUE( (fs) );  // Make sure file can be opend. Should be written by GStreamer during above test
 
-    // Get file size for next test
-    const auto fileSize = [ &fs ]() -> size_t
-        {
-            fs.seekg(0, fs.end);
-            POTHOS_TEST_TRUE( (fs) );
-            const auto fileSize_ = fs.tellg();
-            POTHOS_TEST_TRUE( fileSize_ > 0 );
-            fs.seekg(0, fs.beg);
-            POTHOS_TEST_TRUE( (fs) );
-            return fileSize_;
-        }();
-
-    POTHOS_TEST_EQUAL( fileSize , testData.size() );
-
     // Reading output file, from GStreamer
     std::vector< int8_t > fileBuffer;
     fileBuffer.resize( fileSize );
-    fs.read( reinterpret_cast< char* >( fileBuffer.data() ), fileBuffer.size() );
+    fs.read( reinterpret_cast< decltype( fs )::char_type* >( fileBuffer.data() ), fileBuffer.size() );
     POTHOS_TEST_TRUE( (fs) );
     fs.close();
 

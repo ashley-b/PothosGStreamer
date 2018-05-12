@@ -130,7 +130,7 @@ GstIteratorResult gstIteratorForeach(GstIterator* gstIterator, Fn f)
 
     while ( (result = gst_iterator_next(gstIterator, &item.value)) == GST_ITERATOR_OK )
     {
-        // RAII safe guard to call g_value_reset between interactions
+        // RAII safe guard to call g_value_reset between iterations
         struct ValueUnset final
         {
             GstTypes::GVal *m_value;
@@ -140,12 +140,10 @@ GstIteratorResult gstIteratorForeach(GstIterator* gstIterator, Fn f)
             ~ValueUnset()
             {
                 m_value->reset();
-                poco_warning(GstTypes::logger(), "gstreamer_foreach calling g_value_reset");
             }
         } value_unset(&item);
-        poco_warning(GstTypes::logger(), "gstreamer_foreach calling f() - pre");
+
         f(&item.value);
-        poco_warning(GstTypes::logger(), "gstreamer_foreach calling f() - post");
     }
 
     return result;

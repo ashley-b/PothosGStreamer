@@ -229,7 +229,7 @@ namespace
     };  // class GStreamerToPothosRunState
 
     #define check_run_state_ptr() do { \
-        if ( m_runState.get() == nullptr ) throw Pothos::NullPointerException("Not in running state: " + this->gstreamerBlock()->getPipelineString(), std::string( __func__ ) ); \
+        if ( !m_runState ) throw Pothos::NullPointerException("Not in running state: " + this->gstreamerBlock()->getPipelineString(), std::string( __func__ ) ); \
     } while ( false )
 
     class GStreamerToPothosImpl : public GStreamerSubWorker {
