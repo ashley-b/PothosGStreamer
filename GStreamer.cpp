@@ -487,7 +487,7 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
         {
             GstTagList *tags = nullptr;
             gst_message_parse_tag( gstMessage, &tags );
-            auto objectMsgMap = GstTypes::objectFrom( tags );
+            auto objectMsgMap = GstTypes::tagListToObjectKwargs( tags );
             gst_tag_list_unref( tags );
             return objectMsgMap;
         }
@@ -506,7 +506,7 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
 
             Pothos::ObjectKwargs objectMsgMap;
             objectMsgMap[ "name"  ] = GstTypes::gcharToObject( property_name );
-            objectMsgMap[ "value" ] = GstTypes::objectFrom( property_value );
+            objectMsgMap[ "value" ] = GstTypes::gvalueToObject( property_value );
 
             return objectMsgMap;
         }
@@ -586,7 +586,7 @@ Pothos::Object GStreamer::gstMessageToObject(GstMessage *gstMessage)
         if ( structure != nullptr )
         {
             structureString = GstTypes::gcharToObject( GstTypes::GCharPtr( gst_structure_to_string( structure ) ).get() );
-            structureObject = GstTypes::objectFrom( structure );
+            structureObject = Pothos::Object::make( GstTypes::structureToObjectKwargs( structure ) );
         }
 
         objectMap[ "structureString" ] = structureString;

@@ -26,7 +26,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
         GstTypes::GVal value(G_TYPE_STRING);
         g_value_set_static_string(value(), testString.c_str() );
 
-        auto obj = GstTypes::objectFrom(value());
+        auto obj = GstTypes::gvalueToObject(value());
         POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
         POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
     }
@@ -36,7 +36,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
         GstTypes::GVal value(G_TYPE_GSTRING);
         g_value_take_boxed(value(), gString);
 
-        auto obj = GstTypes::objectFrom(value());
+        auto obj = GstTypes::gvalueToObject(value());
         POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
         POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
     }
@@ -495,4 +495,21 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_create_destroy)
         auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", "fakesrc ! fakesink" );
     }
     POTHOS_TEST_CHECKPOINT();
+}
+#include <tuple>
+POTHOS_TEST_BLOCK(testPath, test_gstreamer_stuff)
+{
+    std::vector< std::tuple< std::string, Pothos::DType > > dtypeList;
+    dtypeList.emplace_back( "Pothos::DType(, 10)", Pothos::DType("", 10) );
+    dtypeList.emplace_back( "Pothos::DType(\"custom\", 10)", Pothos::DType("custom", 10) );
+    dtypeList.emplace_back( "Pothos::DType(\"int\", 1)", Pothos::DType("int", 1) );
+    dtypeList.emplace_back( "Pothos::DType(\"int\", 2)", Pothos::DType("int", 2) );
+
+    for (const auto &dtype : dtypeList)
+    {
+        poco_information( GstTypes::logger(), std::get<0>(dtype) );
+        poco_information( GstTypes::logger(), "    .isCustom(): "   + GstTypes::boolToString( std::get<1>(dtype).isCustom() ) );
+        poco_information( GstTypes::logger(), "    .size(): "       + std::to_string( std::get<1>(dtype).size() ) );
+        poco_information( GstTypes::logger(), "    .dimension(): "  + std::to_string( std::get<1>(dtype).dimension() ) );
+    }
 }

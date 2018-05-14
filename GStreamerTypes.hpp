@@ -100,7 +100,67 @@ namespace GstTypes
      * @param gstStructure GstStructure to be converted to Pothos::Object.
      * @return Pothos::Object {"structure_name":{{"field1_name":"field1_value"},{"field2_name":"field2_value"}}
      */
-    Pothos::Object objectFrom(const GstStructure *gstStructure);
+    Pothos::ObjectKwargs structureToObjectKwargs(const GstStructure *gstStructure);
+
+    GstBuffer* makeSharedGStreamerBuffer(const void *data, size_t size, std::shared_ptr< void > container);
+
+    /**
+     * @brief makeGstBufferFromPacket
+     * @param packet Pothos::Packet containing all data needed to make a GStreamer Buffer
+     * @return GStreamer buffer filled out with data and meta data from packet
+     */
+    GstBuffer* makeGstBufferFromPacket(const Pothos::Packet& packet);
+
+    /**
+     * @brief makePacketFromGstBuffer
+     * @param gstBuffer GStreamer buffer to make packet from
+     * @return Pothos::Packet with GStreamer buffer data and meta data
+     */
+    Pothos::Packet makePacketFromGstBuffer(GstBuffer *gstBuffer);
+
+    Pothos::ObjectKwargs segmentToObjectKwargs(const GstSegment *segment);
+
+    Pothos::Object gvalueToObject(const GValue *gvalue);
+
+    Pothos::ObjectKwargs tagListToObjectKwargs(const GstTagList *tags);
+
+    struct GVal final
+    {
+        ::GValue value;
+
+        GVal() : value( G_VALUE_INIT )
+        {
+        }
+
+        GVal(GType g_type) noexcept : value( G_VALUE_INIT )
+        {
+            g_value_init( &value, g_type );
+        }
+
+        GVal(const GVal&) = delete;
+        GVal& operator=(const GVal&) = delete;
+        GVal(GVal &&) = delete;
+
+        ~GVal() noexcept
+        {
+            g_value_unset( &value );
+        }
+
+        inline void reset() noexcept
+        {
+            g_value_reset( &value );
+        }
+
+        Pothos::Object toPothosObject() const
+        {
+            return gvalueToObject( &value );
+        }
+
+        ::GValue* operator()() noexcept
+        {
+            return &value;
+        }
+    };  // struct GVal
 
     template< typename Iterator, class UnaryFunction >
     std::string joinStrings(const Iterator begin, const Iterator end, const std::string& separator, UnaryFunction func )
@@ -165,64 +225,5 @@ namespace GstTypes
         }
         return key_it->second.extract< T >();
     }
-
-    GstBuffer* makeSharedGStreamerBuffer(const void *data, size_t size, std::shared_ptr< void > container);
-
-    /**
-     * @brief makeGstBufferFromPacket
-     * @param packet Pothos::Packet containing all data needed to make a GStreamer Buffer
-     * @return GStreamer buffer filled out with data and meta data from packet
-     */
-    GstBuffer* makeGstBufferFromPacket(const Pothos::Packet& packet);
-
-    /**
-     * @brief makePacketFromGstBuffer
-     * @param gstBuffer GStreamer buffer to make packet from
-     * @return Pothos::Packet with GStreamer buffer data and meta data
-     */
-    Pothos::Packet makePacketFromGstBuffer(GstBuffer *gstBuffer);
-
-    Pothos::ObjectKwargs segmentToObjectKwargs(const GstSegment *segment);
-
-    Pothos::Object objectFrom(const GValue *gvalue);
-    Pothos::ObjectKwargs objectFrom(const GstTagList *tags);
-
-    struct GVal final
-    {
-        ::GValue value;
-
-        GVal() : value( G_VALUE_INIT )
-        {
-        }
-
-        GVal(GType g_type) noexcept : value( G_VALUE_INIT )
-        {
-            g_value_init( &value, g_type );
-        }
-
-        GVal(const GVal&) = delete;
-        GVal& operator=(const GVal&) = delete;
-        GVal(GVal &&) = delete;
-
-        ~GVal() noexcept
-        {
-            g_value_unset( &value );
-        }
-
-        inline void reset() noexcept
-        {
-            g_value_reset( &value );
-        }
-
-        Pothos::Object toPothosObject() const
-        {
-            return objectFrom( &value );
-        }
-
-        ::GValue* operator()() noexcept
-        {
-            return &value;
-        }
-    };  // struct GVal
 
 }  // namespace GstTypes

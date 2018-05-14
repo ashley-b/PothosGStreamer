@@ -90,21 +90,25 @@ namespace GstTypes
     static gboolean gstStructureForeachFunc(GQuark field_id, const GValue *value, gpointer user_data)
     {
         auto args = static_cast< Pothos::ObjectKwargs* >( user_data );
-        (*args)[ GstTypes::gquarkToString( field_id ) ] = objectFrom( value );
+        (*args)[ gquarkToString( field_id ) ] = gvalueToObject( value );
         return TRUE;
     }
 
-    Pothos::Object objectFrom(const GstStructure *gstStructure)
+    Pothos::ObjectKwargs structureToObjectKwargs(const GstStructure *gstStructure)
     {
+        if (gstStructure == nullptr)
+        {
+            return Pothos::ObjectKwargs();
+        }
         Pothos::ObjectKwargs fields;
         if ( gst_structure_foreach(gstStructure, gstStructureForeachFunc, &fields) == TRUE )
         {
-            Pothos::ObjectKwargs object;
-            object[ gst_structure_get_name( gstStructure ) ] = Pothos::Object( fields );
-            return Pothos::Object( object );
+            Pothos::ObjectKwargs objectArgs;
+            objectArgs[ gst_structure_get_name( gstStructure ) ] = Pothos::Object( fields );
+            return objectArgs;
         }
 
-        return Pothos::Object();
+        return Pothos::ObjectKwargs();
     }
 
     static void gDestroyNotifySharedVoid(gpointer data)
@@ -157,7 +161,7 @@ namespace GstTypes
         // Try to convert buffer flags back into GStreamer buffer flags
 
         Pothos::ObjectKwargs flags_args;
-        if ( GstTypes::ifKeyExtract( packet.metadata, PACKET_META_FLAGS, flags_args )  )
+        if ( ifKeyExtract( packet.metadata, PACKET_META_FLAGS, flags_args )  )
         {
             if ( GstTypes::debug_extra )
             {
@@ -172,7 +176,7 @@ namespace GstTypes
                     continue;
                 }
                 bool value = false;
-                if ( GstTypes::ifKeyExtract( flags_args, flag.first , value ) )
+                if ( ifKeyExtract( flags_args, flag.first , value ) )
                 {
                     ( value ) ? GST_BUFFER_FLAG_SET(gstBuffer, flag.second) : GST_BUFFER_FLAG_UNSET(gstBuffer, flag.second);
                 }
@@ -335,7 +339,7 @@ namespace GstTypes
         {
             auto event = static_cast< GstEvent * >( boxedData );
             auto structure = gst_event_get_structure( event );
-            return objectFrom( structure );
+            return Pothos::Object( structureToObjectKwargs( structure ) );
         }
 
         if ( type == GST_TYPE_TAG_LIST )
@@ -351,7 +355,7 @@ namespace GstTypes
         if ( type == GST_TYPE_STRUCTURE )
         {
             auto structure = static_cast< const GstStructure* >( boxedData );
-            return objectFrom( structure );
+            return Pothos::Object( structureToObjectKwargs( structure ) );
         }
 
         if ( type == G_TYPE_ERROR )
@@ -359,15 +363,15 @@ namespace GstTypes
             Pothos::ObjectKwargs args;
             auto gError = static_cast< const GError* >( boxedData );
             args[ "domain_id" ] = Pothos::Object( gError->domain );
-            args[ "domain"    ] = Pothos::Object( GstTypes::gquarkToString( gError->domain ) );
-            args[ "message"   ] = GstTypes::gcharToObject( gError->message );
+            args[ "domain"    ] = Pothos::Object( gquarkToString( gError->domain ) );
+            args[ "message"   ] = gcharToObject( gError->message );
             return Pothos::Object::make( args );
         }
 
         if ( type == GST_TYPE_CAPS )
         {
             auto caps = static_cast< const GstCaps* >( boxedData );
-            return GstTypes::gcharToObject( gst_caps_to_string( caps ) );
+            return gcharToObject( GCharPtr( gst_caps_to_string( caps ) ).get() );
         }
 
         if ( type == GST_TYPE_DATE_TIME )
@@ -380,9 +384,9 @@ namespace GstTypes
         {
             auto *gst_sample = static_cast< GstSample * >( boxedData );
             Pothos::ObjectKwargs sampleMap;
-            sampleMap[ "caps"      ] = gcharToObject( gst_caps_to_string( gst_sample_get_caps( gst_sample ) ) );
-            sampleMap[ "structure" ] = objectFrom( gst_sample_get_info( gst_sample ) );
-            sampleMap[ "buffer"    ] = Pothos::Object::make( GstTypes::makePacketFromGstBuffer( gst_sample_get_buffer( gst_sample ) ) );
+            sampleMap[ "caps"      ] = gcharToObject( GCharPtr( gst_caps_to_string( gst_sample_get_caps( gst_sample ) ) ).get() );
+            sampleMap[ "structure" ] = Pothos::Object::make( structureToObjectKwargs( gst_sample_get_info( gst_sample ) ) );
+            sampleMap[ "buffer"    ] = Pothos::Object::make( makePacketFromGstBuffer( gst_sample_get_buffer( gst_sample ) ) );
 
             {
                 const auto segment = gst_sample_get_segment( gst_sample );
@@ -396,7 +400,7 @@ namespace GstTypes
         {
             auto gst_buffer = static_cast< GstBuffer* >( boxedData );
 
-            auto packet = GstTypes::makePacketFromGstBuffer( gst_buffer );
+            auto packet = makePacketFromGstBuffer( gst_buffer );
 
             return Pothos::Object::make( packet );
         }
@@ -441,7 +445,7 @@ namespace GstTypes
         return Pothos::Object();
     }
 
-    Pothos::Object objectFrom(const GValue *gvalue)
+    Pothos::Object gvalueToObject(const GValue *gvalue)
     {
         // If null, return null object
         if ( gvalue == nullptr )
@@ -523,7 +527,7 @@ namespace GstTypes
             GstTypes::logger(),
             "GstTypes::objectFrom() Could not convert GValue of type: " +
                 value_type_name + " (abstract: " + boolToString( G_TYPE_IS_VALUE_ABSTRACT( type ) ) +
-                    ", id: " + std::to_string( G_VALUE_TYPE( gvalue ) ) + "), value:" + value_str
+                ", id: " + std::to_string( G_VALUE_TYPE( gvalue ) ) + "), value:" + value_str
         );
 
         Pothos::ObjectKwargs miscData;
@@ -550,7 +554,7 @@ namespace GstTypes
 
             const GValue *g_val = gst_tag_list_get_value_index( list, tag, 0 );
 
-            (*tagMap)[ tag ] = objectFrom( g_val );
+            (*tagMap)[ tag ] = gvalueToObject( g_val );
         }
         else
         {
@@ -560,13 +564,13 @@ namespace GstTypes
                 const GValue *g_val = gst_tag_list_get_value_index( list, tag, i );
 
                 // Added GStreamer value to Pothos vector
-                objectVector.push_back( objectFrom( g_val ) );
+                objectVector.push_back( gvalueToObject( g_val ) );
             }
             (*tagMap)[ tag ] = Pothos::Object::make( objectVector );
         }
     }
 
-    Pothos::ObjectKwargs objectFrom(const GstTagList *tags)
+    Pothos::ObjectKwargs tagListToObjectKwargs(const GstTagList *tags)
     {
         Pothos::ObjectKwargs objectMap;
         gst_tag_list_foreach( tags, convert_tag, &objectMap );
