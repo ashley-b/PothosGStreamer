@@ -20,6 +20,7 @@ namespace GstTypes
     extern const std::string PACKET_META_EOS;
 
     extern const std::string PACKET_META_SEGMENT;
+    extern const std::string PACKET_META_INFO;
     extern const std::string PACKET_META_CAPS;
 
     extern const std::string PACKET_META_TIMESTAMP;

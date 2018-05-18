@@ -295,6 +295,9 @@ namespace
                 auto segment = gst_sample_get_segment( gst_sample );
                 packet.metadata[ GstTypes::PACKET_META_SEGMENT ] = Pothos::Object::make( GstTypes::segmentToObjectKwargs( segment ) );
 
+                const auto info = gst_sample_get_info( gst_sample );
+                packet.metadata[ GstTypes::PACKET_META_INFO    ] = Pothos::Object::make( GstTypes::structureToObjectKwargs( info ) );
+
                 auto caps = gst_sample_get_caps( gst_sample );
                 m_runState->queryCaps(caps, packet);
 

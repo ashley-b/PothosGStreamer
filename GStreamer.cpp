@@ -155,7 +155,7 @@ void GStreamer::findSourcesAndSinks(GstBin *bin)
     GstTypes::GstIteratorPtr gstIterator( gst_bin_iterate_elements( bin ) );
     if ( gstIterator.get() == nullptr )
     {
-        throw Pothos::Exception( funcName, "gst_bin_iterate_elements returned null" );
+        throw Pothos::RuntimeException( funcName, "gst_bin_iterate_elements returned null" );
     }
 
     auto forEachElement = [&] (const GValue *value)
@@ -191,12 +191,12 @@ void GStreamer::findSourcesAndSinks(GstBin *bin)
     {
         case GST_ITERATOR_RESYNC:
         {
-            throw Pothos::Exception( funcName, "Error iterating elements to find sources and sinks: GST_ITERATOR_RESYNC" );
+            throw Pothos::RuntimeException( funcName, "Error iterating elements to find sources and sinks: GST_ITERATOR_RESYNC" );
         }
 
         case GST_ITERATOR_ERROR:
         {
-            throw Pothos::Exception( funcName, "Error iterating elements to find sources and sinks: GST_ITERATOR_ERROR" );
+            throw Pothos::RuntimeException( funcName, "Error iterating elements to find sources and sinks: GST_ITERATOR_ERROR" );
         }
 
         case GST_ITERATOR_OK:

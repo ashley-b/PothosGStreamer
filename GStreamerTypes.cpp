@@ -29,6 +29,7 @@ namespace GstTypes
     // Packet meta data for GstBuffer
     const std::string PACKET_META_EOS        ( "eos" );
     const std::string PACKET_META_SEGMENT    ( "segment" );
+    const std::string PACKET_META_INFO       ( "info" );
     const std::string PACKET_META_CAPS       ( "caps" );
 
     const std::string PACKET_META_TIMESTAMP  ( "timestamp" );
@@ -86,13 +87,28 @@ namespace GstTypes
     }
 
 //-----------------------------------------------------------------------------
-
-    static gboolean gstStructureForeachFunc(GQuark field_id, const GValue *value, gpointer user_data)
+    namespace
     {
-        auto args = static_cast< Pothos::ObjectKwargs* >( user_data );
-        (*args)[ gquarkToString( field_id ) ] = gvalueToObject( value );
-        return TRUE;
-    }
+        struct GstStructureForeach {
+            Pothos::ObjectKwargs fields;
+            std::exception_ptr exceptionPtr;
+
+            static gboolean gstStructureForeachFunc(GQuark field_id, const GValue *value, gpointer user_data)
+            {
+                auto self = static_cast< GstStructureForeach* >( user_data );
+                try
+                {
+                    (self->fields)[ gquarkToString( field_id ) ] = gvalueToObject( value );
+                    return TRUE;
+                }
+                catch (...)  // Save any exception for when we leave gstreamer foreach
+                {
+                    self->exceptionPtr = std::current_exception();
+                    return FALSE;
+                }
+            }
+        };  // struct GstStructureForeach
+    }  // namespace
 
     Pothos::ObjectKwargs structureToObjectKwargs(const GstStructure *gstStructure)
     {
@@ -100,15 +116,20 @@ namespace GstTypes
         {
             return Pothos::ObjectKwargs();
         }
-        Pothos::ObjectKwargs fields;
-        if ( gst_structure_foreach(gstStructure, gstStructureForeachFunc, &fields) == TRUE )
+        GstStructureForeach  gstStructureForeach;
+
+        if ( gst_structure_foreach(gstStructure, GstStructureForeach::gstStructureForeachFunc, &gstStructureForeach) == FALSE )
         {
-            Pothos::ObjectKwargs objectArgs;
-            objectArgs[ gst_structure_get_name( gstStructure ) ] = Pothos::Object( fields );
-            return objectArgs;
+            if ( gstStructureForeach.exceptionPtr )
+            {
+                std::rethrow_exception( gstStructureForeach.exceptionPtr );
+            }
+            return Pothos::ObjectKwargs();
         }
 
-        return Pothos::ObjectKwargs();
+        Pothos::ObjectKwargs objectArgs;
+        objectArgs[ gst_structure_get_name( gstStructure ) ] = Pothos::Object( gstStructureForeach.fields );
+        return objectArgs;
     }
 
     static void gDestroyNotifySharedVoid(gpointer data)
