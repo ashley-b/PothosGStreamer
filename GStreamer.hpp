@@ -3,10 +3,12 @@
 
 #pragma once
 
+#include "GStreamerTypes.hpp"
 #include <Pothos/Framework.hpp>
 #include <gst/gst.h>
 #include <string>
 #include <memory>  /* std::unique_ptr */
+#include <type_traits>
 
 extern const std::string signalBusName;
 extern const std::string signalTag;
@@ -19,8 +21,8 @@ class GStreamer : public Pothos::Block
 {
 private:
     const std::string m_pipeline_string;
-    GstPipeline *m_pipeline;
-    GstBus *m_bus;
+    std::unique_ptr< GstPipeline, GstTypes::GstObjectUnrefFunc > m_pipeline;
+    std::unique_ptr< GstBus, GstTypes::GstObjectUnrefFunc > m_bus;
     std::vector< std::unique_ptr< GStreamerSubWorker > > m_gstreamerSubWorkers;
     int m_blockingNodes;
     bool m_pipeline_active;

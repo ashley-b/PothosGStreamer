@@ -141,7 +141,6 @@ namespace
             m_eosChanged( false ),
             m_eos( false )
         {
-            gst_object_ref( GST_OBJECT( m_gstAppSink ) );
             g_object_set( m_gstAppSink,
                 "max-buffers",      20,   /* Limit number of buffer to queue (Provent memory runaway). */
                  nullptr                  /* List termination */

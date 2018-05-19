@@ -55,7 +55,6 @@ namespace
             m_tag_send_app_data_once( true ),
             m_needData( false )
         {
-            gst_object_ref( GST_OBJECT( m_gstAppSource ) );
             // Save the caps if they were set from pipeline
             m_baseCaps = gst_app_src_get_caps( m_gstAppSource );
 

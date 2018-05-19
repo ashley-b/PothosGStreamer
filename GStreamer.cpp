@@ -61,8 +61,8 @@ const std::string signalEosName( "eos" );
 
 GStreamer::GStreamer(const std::string &pipelineString) :
     m_pipeline_string( pipelineString ),
-    m_pipeline( nullptr ),
-    m_bus( nullptr ),
+    m_pipeline( ),
+    m_bus( ),
     m_gstreamerSubWorkers( ),
     m_blockingNodes( 0 ),
     m_pipeline_active( false ),
@@ -81,7 +81,7 @@ GStreamer::GStreamer(const std::string &pipelineString) :
     createPipeline();
 
     // Iterate through pipeline and try and find AppSink(s) and AppSource(s)
-    findSourcesAndSinks( GST_BIN( m_pipeline ) );
+    findSourcesAndSinks( GST_BIN( m_pipeline.get() ) );
 
     this->registerSignal( signalBusName );
     this->registerSignal( signalTag );
@@ -102,11 +102,11 @@ GStreamer::GStreamer(const std::string &pipelineString) :
 
 GStreamer::~GStreamer()
 {
-    try
+    POTHOS_EXCEPTION_TRY
     {
         destroyPipeline();
     }
-    catch (const Pothos::Exception &e)
+    POTHOS_EXCEPTION_CATCH (const Pothos::Exception &e)
     {
         poco_error( GstTypes::logger(), e.displayText() + ". Pipeline:  " + getPipelineString() );
     }
@@ -223,7 +223,7 @@ void GStreamer::createPipeline()
     const std::string funcName("GStreamer::createPipeline");
 
     GstTypes::GErrorPtr errorPtr;
-    std::unique_ptr< GstElement, GstTypes::Deleter< void, gst_object_unref > > element(
+    std::unique_ptr< GstElement, GstTypes::GstObjectUnrefFunc > element(
         gst_parse_launch_full( m_pipeline_string.c_str(), nullptr, GST_PARSE_FLAG_FATAL_ERRORS, GstTypes::uniquePtrRef(errorPtr) )
     );
 
@@ -249,10 +249,10 @@ void GStreamer::createPipeline()
         throw Pothos::InvalidArgumentException( funcName, message );
     }
 
-    m_pipeline = reinterpret_cast< GstPipeline* >( element.release() );
+    m_pipeline.reset( reinterpret_cast< GstPipeline* >( element.release() ) );
 
-    m_bus = gst_pipeline_get_bus( m_pipeline );
-    if ( m_bus == nullptr )
+    m_bus.reset( gst_pipeline_get_bus( m_pipeline.get() ) );
+    if ( !m_bus )
     {
         poco_error( GstTypes::logger(), "Failed to create GStreamer bus: " );
         destroyPipeline();
@@ -263,7 +263,7 @@ void GStreamer::createPipeline()
 
 void GStreamer::destroyPipeline()
 {
-    if ( m_pipeline == nullptr )
+    if ( !m_pipeline )
     {
         return;
     }
@@ -276,18 +276,17 @@ void GStreamer::destroyPipeline()
     // N.B. This must be done so gst_object_unref actually free the object
     gstChangeState( GST_STATE_NULL );
 
-    if ( m_bus != nullptr )
+    if ( m_bus )
     {
         // Process any GStreamer messages left on the bus so we can print any errors.
         processGStreamerMessagesTimeout( 100 * GST_MSECOND );
 
-        gst_object_unref( m_bus );
-        m_bus = nullptr;
+        // Free Bus
+        m_bus.reset();
     }
 
     // Free GStreamer pipeline
-    gst_object_unref( m_pipeline );
-    m_pipeline = nullptr;
+    m_pipeline.reset();
 }
 
 Pothos::ObjectKwargs GStreamer::gstMessageInfoWarnError( GstMessage *message )
@@ -407,8 +406,8 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
             Pothos::ObjectKwargs objectMsgMap( clockInfo( clock ) );
 
             /* Stop and start pipeline to force new clock selection */
-            gst_element_set_state ( reinterpret_cast< GstElement* >( m_pipeline ), GST_STATE_PAUSED);
-            gst_element_set_state ( reinterpret_cast< GstElement* >( m_pipeline ), GST_STATE_PLAYING);
+            gst_element_set_state ( reinterpret_cast< GstElement* >( m_pipeline.get() ), GST_STATE_PAUSED);
+            gst_element_set_state ( reinterpret_cast< GstElement* >( m_pipeline.get() ), GST_STATE_PLAYING);
 
             return objectMsgMap;
         }
@@ -526,7 +525,7 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
 
         case GST_MESSAGE_LATENCY:
         {
-            gst_bin_recalculate_latency( GST_BIN( m_pipeline ) );
+            gst_bin_recalculate_latency( GST_BIN( m_pipeline.get() ) );
             return Pothos::ObjectKwargs();
         }
 
@@ -545,13 +544,13 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
                 if (percent < 60)
                 {
                     poco_information( GstTypes::logger(), ">Switching to paused while buffering" );
-                    gst_element_set_state( GST_ELEMENT( m_pipeline ), GST_STATE_PAUSED);
+                    gst_element_set_state( GST_ELEMENT( m_pipeline.get() ), GST_STATE_PAUSED);
                     poco_information( GstTypes::logger(), ">Switching to paused while buffering" );
                 }
                 else
                 {
                     poco_information( GstTypes::logger(), ">Restarting pipe line" );
-                    gst_element_set_state( GST_ELEMENT( m_pipeline ), GST_STATE_PLAYING);
+                    gst_element_set_state( GST_ELEMENT( m_pipeline.get() ), GST_STATE_PLAYING);
                     poco_information( GstTypes::logger(), "<Restarting pipe line" );
                 }
             }
@@ -607,7 +606,7 @@ void GStreamer::processGStreamerMessagesTimeout(GstClockTime timeout)
         using GstMessagePtr = std::unique_ptr < GstMessage, GstTypes::Deleter< GstMessage, gst_message_unref > >;
         GstMessagePtr gstMessage(
             gst_bus_timed_pop(
-                m_bus,
+                m_bus.get(),
                 timeout
             )
         );
@@ -677,7 +676,7 @@ std::string GStreamer::getPipelineString() const
 
 GstPipeline* GStreamer::getPipeline() const
 {
-    return m_pipeline;
+    return m_pipeline.get();
 }
 
 inline Pothos::Object GstClockTimeToObject(const GstClockTime gstClockTime)
@@ -688,7 +687,7 @@ inline Pothos::Object GstClockTimeToObject(const GstClockTime gstClockTime)
 Pothos::Object GStreamer::getPipelineLatency() const
 {
     std::unique_ptr < GstQuery, GstTypes::Deleter< GstQuery, gst_query_unref > > query( gst_query_new_latency() );
-    auto res = gst_element_query( GST_ELEMENT( m_pipeline ), query.get() );
+    auto res = gst_element_query( GST_ELEMENT( m_pipeline.get() ), query.get() );
     if (res == FALSE)
     {
         return Pothos::Object();
@@ -734,7 +733,7 @@ int64_t GStreamer::getPipelinePosition(const std::string &format) const
     }
 
     gint64 position;
-    if ( gst_element_query_position(GST_ELEMENT( m_pipeline ), it->second, &position) == TRUE )
+    if ( gst_element_query_position(GST_ELEMENT( m_pipeline.get() ), it->second, &position) == TRUE )
     {
         return position;
     }
@@ -761,7 +760,7 @@ int64_t GStreamer::getPipelineDuration(const std::string &format) const
     }
 
     gint64 duration;
-    if ( gst_element_query_duration(GST_ELEMENT( m_pipeline ), it->second, &duration) == TRUE )
+    if ( gst_element_query_duration(GST_ELEMENT( m_pipeline.get() ), it->second, &duration) == TRUE )
     {
         return duration;
     }
@@ -772,13 +771,13 @@ int64_t GStreamer::getPipelineDuration(const std::string &format) const
 void GStreamer::gstChangeState( GstState state )
 {
     const std::string funcName( "GStreamer::gstChangeState()" );
-    if ( m_pipeline == nullptr )
+    if ( !m_pipeline )
     {
         poco_warning( GstTypes::logger(), funcName + " Will do nothing as pipeline is NULL" );
         return;
     }
 
-    const auto stateChangeReturn = gst_element_set_state( GST_ELEMENT( m_pipeline ), state );
+    const auto stateChangeReturn = gst_element_set_state( GST_ELEMENT( m_pipeline.get() ), state );
 
     std::string errorStr;
     switch ( stateChangeReturn )

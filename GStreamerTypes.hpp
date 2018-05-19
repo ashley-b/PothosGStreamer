@@ -37,15 +37,20 @@ namespace GstTypes
 
     std::string boolToString(bool x);
 
-    template< typename T, void(*Fn)(T*) > struct Deleter {
+    template< typename T, void(*Fn)(T*) >
+    struct Deleter
+    {
         inline void operator() (void *p) const noexcept
         {
             Fn(static_cast<T*>(p));
         }
     };
 
+    using GPointerType = std::remove_pointer< gpointer >::type;
+    using GstObjectUnrefFunc = GstTypes::Deleter< GPointerType, gst_object_unref >;
+
     using GstIteratorPtr = std::unique_ptr < GstIterator, Deleter< GstIterator, gst_iterator_free > >;
-    using GCharPtr = std::unique_ptr < gchar, Deleter< void, g_free > >;
+    using GCharPtr = std::unique_ptr < gchar, Deleter< GPointerType, g_free > >;
     using GErrorPtr = std::unique_ptr < GError, Deleter< GError, g_error_free > >;
 
     template< typename T >
@@ -98,22 +103,22 @@ namespace GstTypes
 
     /**
      * @brief Convert GStreamer structure into Pothos::Object
-     * @param gstStructure GstStructure to be converted to Pothos::Object.
-     * @return Pothos::Object {"structure_name":{{"field1_name":"field1_value"},{"field2_name":"field2_value"}}
+     * @param gstStructure GstStructure to be converted to Pothos::ObjectKwargs.
+     * @return Pothos::ObjectKwargs {"structure_name":{{"field1_name":"field1_value"},{"field2_name":"field2_value"}}
      */
     Pothos::ObjectKwargs structureToObjectKwargs(const GstStructure *gstStructure);
 
     GstBuffer* makeSharedGStreamerBuffer(const void *data, size_t size, std::shared_ptr< void > container);
 
     /**
-     * @brief makeGstBufferFromPacket
+     * @brief Create GstBuffer from Pothos::Packet, using shared memory
      * @param packet Pothos::Packet containing all data needed to make a GStreamer Buffer
      * @return GStreamer buffer filled out with data and meta data from packet
      */
     GstBuffer* makeGstBufferFromPacket(const Pothos::Packet& packet);
 
     /**
-     * @brief makePacketFromGstBuffer
+     * @brief Create Pothos::Packet from GstBuffer, using shared memory
      * @param gstBuffer GStreamer buffer to make packet from
      * @return Pothos::Packet with GStreamer buffer data and meta data
      */
