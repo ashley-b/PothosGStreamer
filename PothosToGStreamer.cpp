@@ -12,8 +12,8 @@ namespace
 
     class PothosToGStreamerRunState {
     private:
-        GstAppSrc *m_gstAppSource;
-        GstCaps *m_baseCaps;
+        std::unique_ptr< GstAppSrc, GstTypes::GstObjectUnrefFunc > m_gstAppSource;
+        GstTypes::GstCapsPtr m_baseCaps;
         bool m_tag_send_app_data_once;
         std::atomic_bool m_needData;
 
@@ -56,7 +56,7 @@ namespace
             m_needData( false )
         {
             // Save the caps if they were set from pipeline
-            m_baseCaps = gst_app_src_get_caps( m_gstAppSource );
+            m_baseCaps.reset( gst_app_src_get_caps( m_gstAppSource.get() ) );
 
             GstAppSrcCallbacks gstAppSrcCallbacks{
                 &need_data,
@@ -64,12 +64,12 @@ namespace
                 &seek_data,
                 { }
             };
-            gst_app_src_set_callbacks( m_gstAppSource, &gstAppSrcCallbacks, this, nullptr);
+            gst_app_src_set_callbacks( m_gstAppSource.get(), &gstAppSrcCallbacks, this, nullptr);
 
             /* Our GstAppSrc can only stream from Pothos, can't seek */
-            gst_app_src_set_stream_type( m_gstAppSource, GST_APP_STREAM_TYPE_STREAM );
+            gst_app_src_set_stream_type( m_gstAppSource.get(), GST_APP_STREAM_TYPE_STREAM );
 
-            g_object_set( m_gstAppSource,
+            g_object_set( m_gstAppSource.get(),
     //          "is-live",      FALSE,
     //          "format",       "GST_FORMAT_TIME",
                 "block",        FALSE,              /* We can't block in Pothos work() method */
@@ -87,15 +87,9 @@ namespace
                 nullptr,
                 { }
             };
-            gst_app_src_set_callbacks( m_gstAppSource, &gstAppSrcCallbacks, this, nullptr);
+            gst_app_src_set_callbacks( m_gstAppSource.get(), &gstAppSrcCallbacks, this, nullptr);
 
             sendEos();
-            if ( m_baseCaps != nullptr )
-            {
-                gst_caps_unref( m_baseCaps );
-                m_baseCaps = nullptr;
-            }
-            gst_object_unref( m_gstAppSource );
         }
 
         bool sendEos()
@@ -112,12 +106,12 @@ namespace
 
         GstAppSrc *gstAppSource()
         {
-            return m_gstAppSource;
+            return m_gstAppSource.get();
         }
 
         GstCaps* getBaseCaps()
         {
-            return m_baseCaps;
+            return m_baseCaps.get();
         }
 
         bool needData() const

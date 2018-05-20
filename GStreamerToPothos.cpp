@@ -13,10 +13,10 @@ namespace
 
     class GStreamerToPothosRunState {
     private:
-        GstAppSink *m_gstAppSink;
+        std::unique_ptr< GstAppSink, GstTypes::GstObjectUnrefFunc > m_gstAppSink;
         std::atomic_uint32_t m_bufferCount;
         Pothos::DType m_dtype;
-        std::unique_ptr< GstCaps, GstTypes::Deleter< GstCaps, gst_caps_unref > > m_lastCaps;
+        GstTypes::GstCapsPtr m_lastCaps;
         Pothos::Object m_capsObj;
         Pothos::Label m_rxRateLabel;
         bool m_eosChanged;
@@ -141,7 +141,7 @@ namespace
             m_eosChanged( false ),
             m_eos( false )
         {
-            g_object_set( m_gstAppSink,
+            g_object_set( m_gstAppSink.get(),
                 "max-buffers",      20,   /* Limit number of buffer to queue (Provent memory runaway). */
                  nullptr                  /* List termination */
             );
@@ -152,7 +152,7 @@ namespace
                 { }
             };
             gst_app_sink_set_callbacks(
-                m_gstAppSink,
+                m_gstAppSink.get(),
                 &gstAppSinkCallbacks,
                 this,
                 nullptr
@@ -168,12 +168,11 @@ namespace
                 { }
             };
             gst_app_sink_set_callbacks(
-                m_gstAppSink,
+                m_gstAppSink.get(),
                 &gstAppSinkCallbacks,
                 this,
                 nullptr
             );
-            gst_object_unref( m_gstAppSink );
         }
 
         bool eosChanged()
@@ -195,13 +194,13 @@ namespace
 
         GstSample* try_pull_sample( GstClockTime timeout )
         {
-            const auto eos = ( gst_app_sink_is_eos( m_gstAppSink ) == TRUE );
+            const auto eos = ( gst_app_sink_is_eos( m_gstAppSink.get() ) == TRUE );
             if (eos != m_eos)
             {
                 m_eosChanged = true;
                 m_eos = eos;
             }
-            GstSample *gst_sample = gst_app_sink_try_pull_sample( m_gstAppSink, timeout );
+            GstSample *gst_sample = gst_app_sink_try_pull_sample( m_gstAppSink.get(), timeout );
             if (gst_sample != nullptr)
             {
                 m_bufferCount--;
