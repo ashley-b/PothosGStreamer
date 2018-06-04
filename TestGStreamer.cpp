@@ -12,12 +12,14 @@
 #include <complex>
 #include <fstream>
 #include <functional>
+#include <tuple>
 
 using json = nlohmann::json;
 
+#define POTHOS_TEST_EQUAL_GCHAR(s1, s2)  POTHOS_TEST_EQUALA((s1), (s2), (std::min( strlen(s1), strlen(s2) )+1))
+
 static const std::string testPath{ "/media/tests" };
 
-#include <iostream>
 
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
 {
@@ -172,30 +174,20 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_if_key_extract_or_default)
     }
 }
 
-#define POTHOS_TEST_EQUAL_GCHAR(s1, s2) POTHOS_TEST_EQUALA((s1), (s2), (std::min( strlen(s1), strlen(s2) )+1))
-
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gchar_ptr)
 {
     //(void)g_strdup( "leak" );
     constexpr size_t stringLength = 255;
     std::array< gchar, stringLength > srcString;
-    std::array< gchar, stringLength > dstString;
-    constexpr gchar fillChar = 'a';
 
-    // Create some test data. Sequentially increasing values.
+    // Create sequentially increasing test string
     std::iota(srcString.begin(), srcString.end(), 1);
-
-    std::fill(dstString.begin(), dstString.end(), fillChar);
-
-    // Zero terminate both strings
+    // Zero terminate
     srcString.back() = 0;
-    dstString.back() = 0;
 
     GstTypes::GCharPtr gcharPtr( g_strdup( srcString.data() ) );
 
-    std::fill_n( gcharPtr.get(), strlen(gcharPtr.get()), fillChar );
-
-    POTHOS_TEST_EQUAL_GCHAR( gcharPtr.get(), dstString.data() );
+    POTHOS_TEST_EQUAL_GCHAR( gcharPtr.get(), srcString.data() );
 }
 
 static constexpr char testString[]{ "Caution!! test string" };
@@ -243,7 +235,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_source)
     // Allocate some fake data
     std::vector< int8_t > testData;
     testData.resize( 2048 );
-    // Create some test data. Sequentially increasing values.
+    // Create sequentially increasing test data.
     std::iota(testData.begin(), testData.end(), 0);
 
     // Convert our real values to complex values for setElements method
@@ -496,7 +488,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_create_destroy)
     }
     POTHOS_TEST_CHECKPOINT();
 }
-#include <tuple>
+
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_stuff)
 {
     std::vector< std::tuple< std::string, Pothos::DType > > dtypeList;
