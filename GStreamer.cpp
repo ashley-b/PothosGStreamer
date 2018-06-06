@@ -474,9 +474,7 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
 
                 if ( format != GST_FORMAT_UNDEFINED  )
                 {
-                    const GstFormatDefinition *gstFormatDefinition = gst_format_get_details( format );
-
-                    stats[ "format"    ] = ( gstFormatDefinition != nullptr ) ? GstTypes::gcharToObject( gstFormatDefinition->nick ) : Pothos::Object( format );
+                    stats[ "format"    ] = Pothos::Object( GstTypes::gstFormatToObjectKwargs( format ) );
                     stats[ "processed" ] = Pothos::Object( processed );
                     stats[ "dropped"   ] = Pothos::Object( dropped );
 
@@ -526,7 +524,7 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
             gst_message_parse_segment_done( gstMessage, &format, &position );
 
             Pothos::ObjectKwargs objectMsgMap;
-            objectMsgMap[ "format"   ] = GstTypes::gcharToObject( gst_format_get_name( format ) );
+            objectMsgMap[ "format"   ] = Pothos::Object( GstTypes::gstFormatToObjectKwargs( format ) );
             objectMsgMap[ "position" ] = Pothos::Object( position );
 
             return objectMsgMap;

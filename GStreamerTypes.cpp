@@ -327,7 +327,7 @@ namespace GstTypes
         obj[ "flags"        ] = Pothos::Object( int( segment->flags ) );
         obj[ "rate"         ] = Pothos::Object( segment->rate );
         obj[ "applied_rate" ] = Pothos::Object( segment->applied_rate );
-        obj[ "format"       ] = Pothos::Object( int( segment->format ) );
+        obj[ "format"       ] = Pothos::Object( GstTypes::gstFormatToObjectKwargs( segment->format ) );
         obj[ "base"         ] = Pothos::Object( segment->base );
         obj[ "offset"       ] = Pothos::Object( segment->offset );
         obj[ "start"        ] = Pothos::Object( segment->start );
@@ -355,6 +355,19 @@ namespace GstTypes
         args[ "abstract"              ] = Pothos::Object( boolToString( G_TYPE_IS_VALUE_ABSTRACT( type ) ) );
         args[ "contents"              ] = Pothos::Object( gcharToString( GCharPtr( g_strdup_value_contents( value ) ).get() ) );
         return args;
+    }
+
+    Pothos::ObjectKwargs gstFormatToObjectKwargs(GstFormat format)
+    {
+        const auto gstFormatDetails = gst_format_get_details(format);
+
+        Pothos::ObjectKwargs args;
+        args[ "string"      ] = ( gstFormatDetails != nullptr ) ? gcharToObject( gstFormatDetails->nick ) : Pothos::Object();
+        args[ "type"        ] = Pothos::Object( "enum" );
+        args[ "value"       ] = Pothos::Object( int(format) );
+        args[ "description" ] = ( gstFormatDetails != nullptr ) ? gcharToObject( gstFormatDetails->description ) : Pothos::Object();
+
+        return Pothos::Object( args );
     }
 
     static void convert_tag( const GstTagList *list, const gchar *tag, gpointer user_data );

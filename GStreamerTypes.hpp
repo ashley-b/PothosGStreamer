@@ -129,6 +129,8 @@ namespace GstTypes
 
     Pothos::ObjectKwargs gvalueToObjectKwargs(const GValue* value);
 
+    Pothos::ObjectKwargs gstFormatToObjectKwargs(GstFormat format);
+
     Pothos::Object gvalueToObject(const GValue *gvalue);
 
     Pothos::ObjectKwargs tagListToObjectKwargs(const GstTagList *tags);
