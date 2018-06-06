@@ -268,13 +268,17 @@ void GStreamer::destroyPipeline()
         return;
     }
 
-    // TODO: Some times change state hangs(blocks).
-    //   This function is not ment to block from the GStreamer docs.
-    //   Should we safe guard our selfs from this or just let it crash Pothos ?????
-
-    // Shutdown the pipeline and free any state info in it
-    // N.B. This must be done so gst_object_unref actually free the object
-    gstChangeState( GST_STATE_NULL );
+    std::exception_ptr exceptionPtr;
+    try
+    {
+        // Shutdown the pipeline and alow GStreamer to free any resources.
+        // N.B. This must be done so gst_object_unref actually free the object
+        gstChangeState( GST_STATE_NULL );
+    }
+    catch (...)
+    {
+        exceptionPtr = std::current_exception();
+    }
 
     if ( m_bus )
     {
@@ -287,6 +291,11 @@ void GStreamer::destroyPipeline()
 
     // Free GStreamer pipeline
     m_pipeline.reset();
+
+    if ( exceptionPtr )
+    {
+        std::rethrow_exception( exceptionPtr );
+    }
 }
 
 Pothos::ObjectKwargs GStreamer::gstMessageInfoWarnError( GstMessage *message )
@@ -618,27 +627,33 @@ void GStreamer::processGStreamerMessagesTimeout(GstClockTime timeout)
 
         // Only block for time out period on the first loop iteration
         timeout = 0;
-
-        auto object = gstMessageToObject( gstMessage.get() );
-
-        if ( isActive() )
+        POTHOS_EXCEPTION_TRY
         {
-            // Dedicated signals we send
-            switch ( GST_MESSAGE_TYPE( gstMessage.get() ) )
-            {
-                case GST_MESSAGE_EOS:
-                    this->emitSignal( signalEosName, object );
-                    break;
-                case GST_MESSAGE_TAG:
-                    this->emitSignal( signalTag, object );
-                    break;
-                // To silence the compilers
-                default:
-                    break;
-            }
+            auto object = gstMessageToObject( gstMessage.get() );
 
-            // Push the GStreamer message out as a Pothos signal
-            this->emitSignal(signalBusName, object);
+            if ( isActive() )
+            {
+                // Dedicated signals we send
+                switch ( GST_MESSAGE_TYPE( gstMessage.get() ) )
+                {
+                    case GST_MESSAGE_EOS:
+                        this->emitSignal( signalEosName, object );
+                        break;
+                    case GST_MESSAGE_TAG:
+                        this->emitSignal( signalTag, object );
+                        break;
+                    // To silence the compilers
+                    default:
+                        break;
+                }
+
+                // Push the GStreamer message out as a Pothos signal
+                this->emitSignal(signalBusName, object);
+            }
+        }
+        POTHOS_EXCEPTION_CATCH (const Pothos::Exception & e)
+        {
+            poco_error(GstTypes::logger(), "GStreamer::processGStreamerMessagesTimeout error: " + e.displayText());
         }
     }
 }
@@ -777,6 +792,9 @@ void GStreamer::gstChangeState( GstState state )
         return;
     }
 
+    // TODO: Some times change state hangs(blocks).
+    //   This function is not ment to block from the GStreamer docs.
+    //   Should we safe guard our selfs from this or just let it crash Pothos ?????
     const auto stateChangeReturn = gst_element_set_state( GST_ELEMENT( m_pipeline.get() ), state );
 
     std::string errorStr;
