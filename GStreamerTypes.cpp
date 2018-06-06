@@ -54,8 +54,7 @@ namespace GstTypes
     std::string gquarkToString(GQuark quark)
     {
         const auto quarkStr = g_quark_to_string( quark );
-        assert( quarkStr != nullptr );
-        return quarkStr;
+        return gcharToString( quarkStr );
     }
 
     std::string gerrorToString(const GError *gError)
@@ -342,6 +341,22 @@ namespace GstTypes
 
 //-----------------------------------------------------------------------------
 
+    Pothos::ObjectKwargs gvalueToObjectKwargs(const GValue* value)
+    {
+        Pothos::ObjectKwargs args;
+        const auto type = G_VALUE_TYPE( value );
+        args[ "type"                  ] = Pothos::Object( type );
+        args[ "type_name"             ] = Pothos::Object( gcharToString( g_type_name( type ) ) );
+
+        const auto type_fundamental = G_TYPE_FUNDAMENTAL( type );
+        args[ "type_fundamental"      ] = Pothos::Object( type_fundamental );
+        args[ "type_fundamental_name" ] = Pothos::Object( gcharToString( g_type_name( type_fundamental ) ) );
+
+        args[ "abstract"              ] = Pothos::Object( boolToString( G_TYPE_IS_VALUE_ABSTRACT( type ) ) );
+        args[ "contents"              ] = Pothos::Object( gcharToString( GCharPtr( g_strdup_value_contents( value ) ).get() ) );
+        return args;
+    }
+
     static void convert_tag( const GstTagList *list, const gchar *tag, gpointer user_data );
 
     static Pothos::Object objectFromBoxed(GType type, gpointer boxedData)
@@ -542,21 +557,13 @@ namespace GstTypes
 
         // If we made it here we failed to convert the GValue.
         // Use glib to convert it to human readable string and log warning.
-        const auto value_str( gcharToString( GCharPtr( g_strdup_value_contents( gvalue ) ).get() ) );
-        const auto value_type_name = gcharToString( G_VALUE_TYPE_NAME( gvalue ) );
+        auto miscData = Pothos::Object( gvalueToObjectKwargs( gvalue ) );
         poco_warning(
             GstTypes::logger(),
-            "GstTypes::objectFrom() Could not convert GValue of type: " +
-                value_type_name + " (abstract: " + boolToString( G_TYPE_IS_VALUE_ABSTRACT( type ) ) +
-                ", id: " + std::to_string( G_VALUE_TYPE( gvalue ) ) + "), value:" + value_str
+            "GstTypes::gvalueToObject() Could not convert GValue, falling back to Glib implementation: " + miscData.toString()
         );
 
-        Pothos::ObjectKwargs miscData;
-        miscData[ "type"             ] = Pothos::Object( value_type_name );
-        miscData[ "type_fundamental" ] = Pothos::Object( G_TYPE_FUNDAMENTAL( type ) );
-        miscData[ "contents"         ] = Pothos::Object( value_str );
-
-        return Pothos::Object::make( miscData );
+        return miscData;
     }
 
     static void convert_tag( const GstTagList *list, const gchar *tag, gpointer user_data )

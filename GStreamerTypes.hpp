@@ -127,6 +127,8 @@ namespace GstTypes
 
     Pothos::ObjectKwargs segmentToObjectKwargs(const GstSegment *segment);
 
+    Pothos::ObjectKwargs gvalueToObjectKwargs(const GValue* value);
+
     Pothos::Object gvalueToObject(const GValue *gvalue);
 
     Pothos::ObjectKwargs tagListToObjectKwargs(const GstTagList *tags);
@@ -162,6 +164,16 @@ namespace GstTypes
         Pothos::Object toPothosObject() const
         {
             return gvalueToObject( &value );
+        }
+
+        std::string toString() const
+        {
+            return gcharToString( GCharPtr( g_strdup_value_contents( &value ) ).get() );
+        }
+
+        Pothos::ObjectKwargs toDebugObjectKwargs() const
+        {
+            return gvalueToObjectKwargs( &value );
         }
 
         ::GValue* operator()() noexcept

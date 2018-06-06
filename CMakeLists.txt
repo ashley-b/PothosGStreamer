@@ -21,7 +21,7 @@ if (pothos_util)
     message(STATUS "Found ${pothos_util}. Adding test target")
     enable_testing()
     set(test_list
-        "test_gstreamer_gst_types_object_from"
+        "test_gstreamer_gst_types_gvalue_to_object"
         "test_gstreamer_gst_types_if_key_extract_or_default"
         "test_gstreamer_gst_types_gchar_ptr"
         "test_gstreamer_gst_types_gerror_ptr"

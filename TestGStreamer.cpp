@@ -21,7 +21,7 @@ using json = nlohmann::json;
 static const std::string testPath{ "/media/tests" };
 
 
-POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
+POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gvalue_to_object)
 {
     const std::string testString( "test 1, 2" );
     {
@@ -126,6 +126,14 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_object_from)
             // Should test the string values of the flag, but too tricky to be worth it.
             //const auto value = stringIt->second.convert< std::string >();
             //POTHOS_TEST_EQUAL( value, "GST_STATE_PLAYING" );
+        }
+
+        {
+            const char testData[] = { 1, 2, 3, 4 };
+            GstTypes::GVal v(G_TYPE_BYTES);
+            g_value_take_boxed( &v.value, g_bytes_new_static( testData, sizeof(testData) ) );
+
+            poco_information( GstTypes::logger(), "v.toDebugString() = " + Pothos::Object( v.toDebugObjectKwargs() ).toString() );
         }
     }
 }
