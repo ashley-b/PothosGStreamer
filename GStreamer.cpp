@@ -587,15 +587,12 @@ Pothos::Object GStreamer::gstMessageToObject(GstMessage *gstMessage)
     // Debug message handling code
     {
         auto structure = gst_message_get_structure( gstMessage );
-        Pothos::Object structureString;
         Pothos::Object structureObject;
         if ( structure != nullptr )
         {
-            structureString = GstTypes::gcharToObject( GstTypes::GCharPtr( gst_structure_to_string( structure ) ).get() );
             structureObject = Pothos::Object::make( GstTypes::structureToObjectKwargs( structure ) );
         }
 
-        objectMap[ "structureString" ] = structureString;
         objectMap[ "structureObject" ] = structureObject;
     }
 
