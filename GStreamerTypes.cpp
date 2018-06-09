@@ -370,8 +370,6 @@ namespace GstTypes
         return Pothos::Object( args );
     }
 
-    static void convert_tag( const GstTagList *list, const gchar *tag, gpointer user_data );
-
     static Pothos::Object objectFromBoxed(GType type, gpointer boxedData)
     {
         if ( type == G_TYPE_GSTRING )
@@ -393,12 +391,8 @@ namespace GstTypes
 
         if ( type == GST_TYPE_TAG_LIST )
         {
-            Pothos::ObjectKwargs objectMap;
             auto tagList = static_cast< GstTagList * >( boxedData );
-
-            gst_tag_list_foreach( tagList, convert_tag, &objectMap );
-
-            return Pothos::Object::make( objectMap );
+            return Pothos::Object( tagListToObjectKwargs( tagList ) );
         }
 
         if ( type == GST_TYPE_STRUCTURE )
