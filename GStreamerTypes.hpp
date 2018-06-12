@@ -111,6 +111,24 @@ namespace GstTypes
 
     GstBuffer* makeSharedGStreamerBuffer(const void *data, size_t size, std::shared_ptr< void > container);
 
+    class GstCapsCache final
+    {
+        GstCapsPtr m_lastCaps;
+        bool m_change;
+        std::string m_capsStr;
+
+        static bool equal(const GstCaps *caps1, const GstCaps *caps2) noexcept;
+
+    public:
+        GstCapsCache();
+        bool diff(GstCaps* caps);
+        const std::string& str() const noexcept;
+        bool changed() noexcept;
+        static std::string update(GstCaps* caps, GstCapsCache* gstCapsCach);
+    };  // class GstCapsCache
+
+    Pothos::Packet makePacketFromGstSample(GstSample* gstSample, GstCapsCache* gstCapsCach);
+
     /**
      * @brief Create GstBuffer from Pothos::Packet, using shared memory
      * @param packet Pothos::Packet containing all data needed to make a GStreamer Buffer

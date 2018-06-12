@@ -250,6 +250,90 @@ namespace GstTypes
         };  // class GStreamerBufferWrapper
     }  // namespace
 
+//-----------------------------------------------------------------------------
+
+    bool GstCapsCache::equal(const GstCaps *caps1, const GstCaps *caps2) noexcept
+    {
+        if ( caps1 == caps2 )
+        {
+            return true;
+        }
+        if ( ( caps1 == nullptr ) || ( caps2 == nullptr ) )
+        {
+            return false;
+        }
+        return ( gst_caps_is_equal( caps1, caps2 ) == TRUE );
+    }
+
+    GstCapsCache::GstCapsCache() :
+        m_change(false)
+    {
+    }
+
+    bool GstCapsCache::diff(GstCaps* caps)
+    {
+        if ( equal(caps, m_lastCaps.get()) )
+        {
+            m_change = false;
+            return m_change;
+        }
+
+        if ( caps != nullptr )
+        {
+            m_lastCaps.reset( gst_caps_ref( caps ) );
+            m_capsStr = GCharPtr( gst_caps_to_string( caps ) ).get();
+        }
+        else
+        {
+            m_capsStr.clear();
+            m_lastCaps.reset();
+        }
+        m_change = true;
+        return m_change;
+    }
+
+    const std::string& GstCapsCache::str() const noexcept
+    {
+        return m_capsStr;
+    }
+
+    bool GstCapsCache::changed() noexcept
+    {
+        const auto changed = m_change;
+        m_change = false;
+        return changed;
+    }
+
+    std::string GstCapsCache::update(GstCaps* caps, GstCapsCache* gstCapsCach)
+    {
+        if ( gstCapsCach != nullptr )
+        {
+            gstCapsCach->diff(caps);
+            return gstCapsCach->str();
+        }
+
+        return GCharPtr( gst_caps_to_string( caps ) ).get();
+    }
+
+//-----------------------------------------------------------------------------
+
+    Pothos::Packet makePacketFromGstSample(GstSample *gstSample, GstCapsCache* gstCapsCach)
+    {
+        // Get GStreamer buffer and create Pothos packet from it
+        auto packet = GstTypes::makePacketFromGstBuffer( gst_sample_get_buffer( gstSample ) );
+
+        packet.metadata[ GstTypes::PACKET_META_INFO    ] =
+            Pothos::Object( structureToObjectKwargs( gst_sample_get_info( gstSample ) ) );
+
+        packet.metadata[ GstTypes::PACKET_META_SEGMENT ] =
+            Pothos::Object( segmentToObjectKwargs( gst_sample_get_segment( gstSample ) ) );
+
+        packet.metadata[ GstTypes::PACKET_META_CAPS    ] =
+            Pothos::Object( GstCapsCache::update( gst_sample_get_caps( gstSample ), gstCapsCach) );
+
+        return packet;
+    }
+
     Pothos::Packet makePacketFromGstBuffer(GstBuffer *gstBuffer)
     {
         Pothos::Packet packet;
@@ -425,18 +509,8 @@ namespace GstTypes
 
         if ( type == GST_TYPE_SAMPLE )
         {
-            auto *gst_sample = static_cast< GstSample * >( boxedData );
-            Pothos::ObjectKwargs sampleMap;
-            sampleMap[ "caps"      ] = gcharToObject( GCharPtr( gst_caps_to_string( gst_sample_get_caps( gst_sample ) ) ).get() );
-            sampleMap[ "structure" ] = Pothos::Object::make( structureToObjectKwargs( gst_sample_get_info( gst_sample ) ) );
-            sampleMap[ "buffer"    ] = Pothos::Object::make( makePacketFromGstBuffer( gst_sample_get_buffer( gst_sample ) ) );
-
-            {
-                const auto segment = gst_sample_get_segment( gst_sample );
-                sampleMap[ "segment" ] = Pothos::Object::make( segmentToObjectKwargs( segment ) );
-            }
-
-            return Pothos::Object::make( sampleMap );
+            auto *gstSample = static_cast< GstSample * >( boxedData );
+            return Pothos::Object( makePacketFromGstSample( gstSample, nullptr ) );
         }
 
         if ( type == GST_TYPE_BUFFER )

@@ -16,9 +16,8 @@ namespace
         std::unique_ptr< GstAppSink, GstTypes::GstObjectUnrefFunc > m_gstAppSink;
         std::atomic_uint32_t m_bufferCount;
         Pothos::DType m_dtype;
-        GstTypes::GstCapsPtr m_lastCaps;
-        Pothos::Object m_capsObj;
         Pothos::Label m_rxRateLabel;
+        GstTypes::GstCapsCache m_gstCapsCach;
         bool m_eosChanged;
         bool m_eos;
 
@@ -86,27 +85,14 @@ namespace
             return Pothos::DType( format, GST_AUDIO_INFO_CHANNELS( gstAudioInfo ) );
         }
 
-        bool diffCaps(GstCaps *caps)
+        void capsToMetaInfo(GstCaps* caps)
         {
             if ( caps == nullptr )
             {
-                if ( !m_lastCaps.operator bool() )
-                {
-                    return false;
-                }
-
                 m_dtype = Pothos::DType();
                 m_rxRateLabel = Pothos::Label();
-                m_lastCaps.reset();
-                return true;
+                return;
             }
-
-            if ( ( m_lastCaps.operator bool() ) && ( gst_caps_is_equal( caps, m_lastCaps.get() ) == TRUE ) )
-            {
-                return false;
-            }
-
-            m_lastCaps.reset( gst_caps_ref( caps ) );
 
             GstAudioInfo gstAudioInfo;
             if ( gst_audio_info_from_caps(&gstAudioInfo, caps) == TRUE )
@@ -124,8 +110,6 @@ namespace
                 m_dtype = Pothos::DType();
                 m_rxRateLabel = Pothos::Label();
             }
-
-            return true;
         }
     public:
         GStreamerToPothosRunState() = delete;
@@ -136,7 +120,6 @@ namespace
             m_gstAppSink( getAppSinkByName( gstreamerSubWorker ) ),
             m_bufferCount( 0 ),
             m_dtype(),
-            m_lastCaps( nullptr ),
             m_rxRateLabel(),
             m_eosChanged( false ),
             m_eos( false )
@@ -208,14 +191,16 @@ namespace
             return gst_sample;
         }
 
-        void queryCaps(GstCaps *caps, Pothos::Packet &packet)
+        Pothos::Packet createPacketFromGstSample(GstSample* gstSample)
         {
-            if ( diffCaps(caps) )
-            {
-                m_capsObj = GstTypes::gcharToObject( GstTypes::GCharPtr( gst_caps_to_string( caps ) ).get() );
-            }
+            // Get GStreamer buffer and create Pothos packet from it
+            auto packet = GstTypes::makePacketFromGstSample( gstSample, &m_gstCapsCach );
 
-            packet.metadata[ GstTypes::PACKET_META_CAPS ] = m_capsObj;
+            if ( m_gstCapsCach.changed() )
+            {
+                auto caps = gst_sample_get_caps( gstSample );
+                capsToMetaInfo(caps);
+            }
 
             // If m_rxRateLabel valid add it to the packet
             if ( !m_rxRateLabel.id.empty() )
@@ -223,6 +208,8 @@ namespace
                 packet.labels.push_back( m_rxRateLabel );
             }
             packet.payload.dtype = m_dtype;
+
+            return packet;
         }
     };  // class GStreamerToPothosRunState
 
@@ -286,18 +273,7 @@ namespace
 
             if ( gst_sample != nullptr )
             {
-                // Get GStreamer buffer and create Pothos packet from it
-                GstBuffer *gst_buffer = gst_sample_get_buffer( gst_sample );
-                packet = GstTypes::makePacketFromGstBuffer( gst_buffer );
-
-                auto segment = gst_sample_get_segment( gst_sample );
-                packet.metadata[ GstTypes::PACKET_META_SEGMENT ] = Pothos::Object::make( GstTypes::segmentToObjectKwargs( segment ) );
-
-                const auto info = gst_sample_get_info( gst_sample );
-                packet.metadata[ GstTypes::PACKET_META_INFO    ] = Pothos::Object::make( GstTypes::structureToObjectKwargs( info ) );
-
-                auto caps = gst_sample_get_caps( gst_sample );
-                m_runState->queryCaps(caps, packet);
+                packet = m_runState->createPacketFromGstSample( gst_sample );
 
                 gst_sample_unref( gst_sample );
             }
