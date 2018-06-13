@@ -1,9 +1,9 @@
 /// Copyright (c) 2017-2018 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
-#include <gst/gst.h>
-#include "GStreamerTypes.hpp"
 #include "GStreamerStatic.hpp"
+#include "GStreamerTypes.hpp"
+#include <gst/gst.h>
 
 namespace {
 

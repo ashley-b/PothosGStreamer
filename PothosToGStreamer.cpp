@@ -2,10 +2,10 @@
 /// SPDX-License-Identifier: BSL-1.0
 
 #include "PothosToGStreamer.hpp"
-#include <gst/app/gstappsrc.h>
-#include <string>
 #include "GStreamer.hpp"
 #include "GStreamerTypes.hpp"
+#include <gst/app/gstappsrc.h>
+#include <string>
 
 namespace
 {

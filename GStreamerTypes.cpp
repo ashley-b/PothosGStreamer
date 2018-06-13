@@ -1,12 +1,12 @@
 /// Copyright (c) 2017-2018 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
-#include <gst/gst.h>
-#include <Pothos/Framework.hpp>
-#include <Pothos/Exception.hpp>
-#include <Poco/Logger.h>
-#include <string>
 #include "GStreamerTypes.hpp"
+#include <Poco/Logger.h>
+#include <Pothos/Exception.hpp>
+#include <Pothos/Framework.hpp>
+#include <gst/gst.h>
+#include <string>
 
 namespace GstTypes
 {

@@ -2,11 +2,11 @@
 /// SPDX-License-Identifier: BSL-1.0
 
 #include "GStreamerToPothos.hpp"
+#include "GStreamer.hpp"
+#include "GStreamerTypes.hpp"
 #include <gst/app/gstappsink.h>
 #include <gst/audio/audio-info.h>
 #include <string>
-#include "GStreamer.hpp"
-#include "GStreamerTypes.hpp"
 
 namespace
 {

@@ -1,17 +1,17 @@
 /// Copyright (c) 2017-2018 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
-#include <Pothos/Testing.hpp>
-#include <Pothos/Framework.hpp>
-#include <Pothos/Proxy.hpp>
-#include <Poco/TemporaryFile.h>
-#include <json.hpp>
 #include "GStreamer.hpp"
 #include "GStreamerTypes.hpp"
-#include <iostream>
+#include <Poco/TemporaryFile.h>
+#include <Pothos/Framework.hpp>
+#include <Pothos/Proxy.hpp>
+#include <Pothos/Testing.hpp>
 #include <complex>
 #include <fstream>
 #include <functional>
+#include <iostream>
+#include <json.hpp>
 #include <tuple>
 
 using json = nlohmann::json;

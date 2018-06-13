@@ -43,17 +43,17 @@
  * |setter setState(state)
  **********************************************************************/
 
-#include <Pothos/Framework.hpp>
-#include <Poco/Logger.h>
-#include <Pothos/Exception.hpp>
-#include <gst/gst.h>
-#include <vector>
-#include <sstream>
 #include "GStreamer.hpp"
+#include "GStreamerStatic.hpp"
+#include "GStreamerToPothos.hpp"
 #include "GStreamerTypes.hpp"
 #include "PothosToGStreamer.hpp"
-#include "GStreamerToPothos.hpp"
-#include "GStreamerStatic.hpp"
+#include <Poco/Logger.h>
+#include <Pothos/Exception.hpp>
+#include <Pothos/Framework.hpp>
+#include <gst/gst.h>
+#include <sstream>
+#include <vector>
 
 const std::string signalBusName( "bus" );
 const std::string signalTag( "busTag" );
