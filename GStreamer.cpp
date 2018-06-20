@@ -134,7 +134,7 @@ GstIteratorResult gstIteratorForeach(GstIterator* gstIterator, Fn f)
         struct ValueUnset final
         {
             GstTypes::GVal *m_value;
-            ValueUnset(GstTypes::GVal *value) noexcept : m_value(value)
+            explicit ValueUnset(GstTypes::GVal *value) noexcept : m_value(value)
             {
             }
             ~ValueUnset()

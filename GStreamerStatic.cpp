@@ -11,6 +11,12 @@ namespace {
     {
         GstTypes::GErrorPtr initError;
 
+        GStreamerStatic(const GStreamerStatic &) = delete;
+        GStreamerStatic& operator=(const GStreamerStatic &) = delete;
+
+        GStreamerStatic(GStreamerStatic &&) = delete;
+        GStreamerStatic& operator=(GStreamerStatic &&) = delete;
+
         GStreamerStatic() :
             initError( )
         {

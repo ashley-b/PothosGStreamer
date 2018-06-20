@@ -18,8 +18,11 @@ protected:
     GStreamerSubWorker(GStreamer *gstreamerBlock, const std::string &name);
 
 public:
+    GStreamerSubWorker() = delete;
     GStreamerSubWorker(const GStreamerSubWorker&) = delete; // Non construction-copyable
     GStreamerSubWorker& operator=(const GStreamerSubWorker&) = delete; // Non copyable
+    GStreamerSubWorker(GStreamerSubWorker&&) = delete; // Non construction-moveable
+    GStreamerSubWorker& operator=(GStreamerSubWorker&&) = delete; // Non moveable
 
     virtual ~GStreamerSubWorker() = default;
 

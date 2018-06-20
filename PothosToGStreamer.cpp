@@ -48,6 +48,8 @@ namespace
         PothosToGStreamerRunState() = delete;
         PothosToGStreamerRunState(const PothosToGStreamerRunState&) = delete;
         PothosToGStreamerRunState& operator=(const PothosToGStreamerRunState&) = delete;
+        PothosToGStreamerRunState(PothosToGStreamerRunState&&) = delete;
+        PothosToGStreamerRunState& operator=(PothosToGStreamerRunState&&) = delete;
 
         explicit PothosToGStreamerRunState(GStreamerSubWorker *gstreamerSubWorker) :
             m_gstAppSource( getAppSrcByName( gstreamerSubWorker ) ),

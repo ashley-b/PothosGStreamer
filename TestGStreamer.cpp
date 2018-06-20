@@ -131,7 +131,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gvalue_to_object)
         {
             const char testData[] = { 1, 2, 3, 4 };
             GstTypes::GVal v(G_TYPE_BYTES);
-            g_value_take_boxed( &v.value, g_bytes_new_static( testData, sizeof(testData) ) );
+            g_value_take_boxed( &v.value, g_bytes_new_static( &testData, sizeof(testData) ) );
 
             poco_information( GstTypes::logger(), "v.toDebugString() = " + Pothos::Object( v.toDebugObjectKwargs() ).toString() );
         }
@@ -512,4 +512,14 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_stuff)
         poco_information( GstTypes::logger(), "    .size(): "       + std::to_string( std::get<1>(dtype).size() ) );
         poco_information( GstTypes::logger(), "    .dimension(): "  + std::to_string( std::get<1>(dtype).dimension() ) );
     }
+
+    GstCaps *caps = nullptr;
+    const std::string s( GstTypes::GCharPtr( gst_caps_to_string( caps ) ).get() );
+
+    poco_information( GstTypes::logger(), "caps = " + s );
+
+
+    GstTypes::GstCapsCache gstCapsCache;
+
+    auto g = std::move( gstCapsCache );
 }

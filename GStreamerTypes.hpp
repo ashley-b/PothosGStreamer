@@ -55,9 +55,10 @@ namespace GstTypes
     using GstCapsPtr = std::unique_ptr< GstCaps, GstTypes::Deleter< GstCaps, gst_caps_unref > >;
 
     template< typename T >
-    class UniquePtrRef {
-        T *_ptr;
-        typename T::element_type *_ref;
+    class UniquePtrRef final {
+        T *m_ptr;
+        typename T::element_type *m_ref;
+
     public:
         using element_type = typename T::element_type;
 
@@ -67,14 +68,14 @@ namespace GstTypes
         UniquePtrRef& operator=(UniquePtrRef&&) = default;
 
         explicit UniquePtrRef(T &ptr) noexcept :
-            _ptr( std::addressof( ptr ) ),
-            _ref( nullptr )
+            m_ptr( std::addressof( ptr ) ),
+            m_ref( nullptr )
         {
         }
 
         ~UniquePtrRef()
         {
-            _ptr->reset( _ref );
+            m_ptr->reset( m_ref );
         }
 
         operator element_type**() noexcept
@@ -84,7 +85,7 @@ namespace GstTypes
 
         element_type** ref() noexcept
         {
-            return &_ref;
+            return &m_ref;
         }
     };  // class UniquePtrRef< T >
 
@@ -121,6 +122,7 @@ namespace GstTypes
 
     public:
         GstCapsCache();
+
         bool diff(GstCaps* caps);
         const std::string& str() const noexcept;
         bool changed() noexcept;

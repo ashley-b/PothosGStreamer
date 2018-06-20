@@ -208,14 +208,17 @@ namespace GstTypes
 
     namespace
     {
-        class GStreamerBufferWrapper
+        class GStreamerBufferWrapper final
         {
             GstBuffer *m_buffer;
             GstMapInfo m_mapInfo;
 
         public:
+            GStreamerBufferWrapper() = delete;
             GStreamerBufferWrapper(const GStreamerBufferWrapper&) = delete;             // No copy constructor
             GStreamerBufferWrapper& operator= (const GStreamerBufferWrapper&) = delete; // No assignment operator
+            GStreamerBufferWrapper(GStreamerBufferWrapper&&) = delete;             // No move constructor
+            GStreamerBufferWrapper& operator= (GStreamerBufferWrapper&&) = delete; // No move operator
 
             explicit GStreamerBufferWrapper(GstBuffer *gstBuffer, GstMapFlags flags) :
                 m_buffer(gst_buffer_ref(gstBuffer)),

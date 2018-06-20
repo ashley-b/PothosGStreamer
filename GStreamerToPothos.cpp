@@ -11,7 +11,7 @@
 namespace
 {
 
-    class GStreamerToPothosRunState {
+    class GStreamerToPothosRunState final {
     private:
         std::unique_ptr< GstAppSink, GstTypes::GstObjectUnrefFunc > m_gstAppSink;
         std::atomic_uint32_t m_bufferCount;
@@ -54,8 +54,8 @@ namespace
             if ( GST_AUDIO_INFO_WIDTH( gstAudioInfo ) != GST_AUDIO_INFO_DEPTH( gstAudioInfo ) )
             {
                 poco_warning(GstTypes::logger(),
-                             "GST_AUDIO_INFO_WIDTH( gstAudioInfo ) = " + std::to_string( GST_AUDIO_INFO_WIDTH( gstAudioInfo ) ) +
-                             " and GST_AUDIO_INFO_DEPTH( gstAudioInfo ) = " + std::to_string( GST_AUDIO_INFO_DEPTH( gstAudioInfo ) ) + " do not match, this may produce garbel data.");
+                             "GST_AUDIO_INFO_WIDTH( gstAudioInfo ) = " + std::to_string( GST_AUDIO_INFO_WIDTH( gstAudioInfo ) ) + " and " +
+                             "GST_AUDIO_INFO_DEPTH( gstAudioInfo ) = " + std::to_string( GST_AUDIO_INFO_DEPTH( gstAudioInfo ) ) + " do not match, this may produce garbel data.");
             }
 
             if ( GST_AUDIO_INFO_ENDIANNESS( gstAudioInfo ) != G_BYTE_ORDER )
@@ -74,8 +74,7 @@ namespace
             {
                 format += ( GST_AUDIO_INFO_IS_SIGNED( gstAudioInfo ) ) ? "int" : "uint";
             }
-            else
-            if ( GST_AUDIO_INFO_IS_FLOAT( gstAudioInfo ) )
+            else if ( GST_AUDIO_INFO_IS_FLOAT( gstAudioInfo ) )
             {
                 format += "float";
             }
@@ -115,6 +114,8 @@ namespace
         GStreamerToPothosRunState() = delete;
         GStreamerToPothosRunState(const GStreamerToPothosRunState&) = delete;
         GStreamerToPothosRunState& operator=(const GStreamerToPothosRunState&) = delete;
+        GStreamerToPothosRunState(GStreamerToPothosRunState&&) = delete;
+        GStreamerToPothosRunState& operator=(GStreamerToPothosRunState&&) = delete;
 
         explicit GStreamerToPothosRunState(GStreamerSubWorker *gstreamerSubWorker) :
             m_gstAppSink( getAppSinkByName( gstreamerSubWorker ) ),
@@ -214,7 +215,7 @@ namespace
     };  // class GStreamerToPothosRunState
 
     #define check_run_state_ptr() do { \
-        if ( !m_runState ) throw Pothos::NullPointerException("Not in running state: " + this->gstreamerBlock()->getPipelineString(), std::string( __func__ ) ); \
+        if ( !m_runState ) throw Pothos::NullPointerException("Not in running state: " + this->gstreamerBlock()->getPipelineString(), std::string( (std::decay< decltype( __func__ )>::type)& __func__ ) ); \
     } while ( false )
 
     class GStreamerToPothosImpl : public GStreamerSubWorker {
@@ -268,7 +269,7 @@ namespace
         void work(long long maxTimeoutNs) override
         {
             Pothos::Packet packet;
-
+// TODO: Add ref tracking
             GstSample *gst_sample = m_runState->try_pull_sample( maxTimeoutNs * GST_NSECOND );
 
             if ( gst_sample != nullptr )
