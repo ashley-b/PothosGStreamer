@@ -31,7 +31,7 @@ namespace {
 
             if ( gst_init_check( nullptr, nullptr, GstTypes::uniquePtrRef( initError ) ) == FALSE )
             {
-               GstTypes::logger().error( "GStreamerStatic::GStreamerStatic(): gst_init_check error: " + GstTypes::gerrorToString( initError.get() ) );
+               poco_error( GstTypes::logger(), "GStreamerStatic::GStreamerStatic(): gst_init_check error: " + GstTypes::gerrorToString( initError.get() ) );
             }
 
             if ( GstTypes::debug_extra )

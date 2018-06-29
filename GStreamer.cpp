@@ -73,7 +73,7 @@ GStreamer::GStreamer(const std::string &pipelineString) :
         throw Pothos::RuntimeException( "GStreamer::GStreamer()", "Could not initialize GStreamer library: " + GstTypes::gerrorToString( GstStatic::getInitError() ) );
     }
 
-    poco_information( GstTypes::logger(), "GStreamer version: " + GstTypes::gcharToString( GstTypes::GCharPtr( gst_version_string() ).get() ) );
+    poco_information( GstTypes::logger(), "GStreamer version: " + GstStatic::getVersion() );
 
     poco_information( GstTypes::logger(), "About to create pipeline: " + m_pipeline_string );
 
@@ -158,7 +158,7 @@ void GStreamer::findSourcesAndSinks(GstBin *bin)
         throw Pothos::RuntimeException( funcName, "gst_bin_iterate_elements returned null" );
     }
 
-    auto forEachElement = [&] (const GValue *value)
+    auto forEachElement = [ this ] (const GValue *value)
     {
         auto gstElement = GST_ELEMENT( g_value_get_object( value ) );
         if ( gstElement == nullptr )
