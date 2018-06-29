@@ -655,28 +655,26 @@ void GStreamer::processGStreamerMessagesTimeout(GstClockTime timeout)
 
 void GStreamer::setState(const std::string &state)
 {
-    static const std::map< std::string, GstState > stateMap =
-    {
+    static const std::array< std::pair< std::string, GstState >, 2 > states =
+    { {
         { "PLAY",  GST_STATE_PLAYING },
         { "PAUSE", GST_STATE_PAUSED  }
-    };
+    } };
 
-    const auto it = stateMap.find( state );
-
-    // Throw argument exception if state not found
-    if ( it == stateMap.cend() )
+    try
     {
-        const std::string options(
-            GstTypes::joinStrings(stateMap.begin(), stateMap.end(), ", ", [](decltype(stateMap)::value_type value)->std::string{ return value.first; } )
-        );
-        throw Pothos::InvalidArgumentException("GStreamer::setState("+state+")", "Unknown state, can be "+options);
+        const auto value = GstTypes::findValueByKey( states, state );
+        // Can only change the state if the pipeline is running
+        if ( m_pipeline_active )
+        {
+            this->gstChangeState( value );
+        }
+        m_gstState = value;
     }
-    // Can only change the state if the pipeline is running
-    if ( m_pipeline_active )
+    catch (const Pothos::NotFoundException &e)
     {
-        this->gstChangeState( it->second );
+        throw Pothos::InvalidArgumentException("GStreamer::setState("+state+")", "Unknown state. " + e.message());
     }
-    m_gstState = it->second;
 }
 
 std::string GStreamer::getPipelineString() const
@@ -715,67 +713,52 @@ Pothos::Object GStreamer::getPipelineLatency() const
     return Pothos::Object::make( args );
 }
 
-static const std::map< std::string, GstFormat > formatMap
-{
+static const std::array< std::pair< std::string, GstFormat >, 5 > formats
+{ {
     { "DEFAULT"  , GST_FORMAT_DEFAULT },
     { "BYTES"    , GST_FORMAT_BYTES   },
     { "TIME"     , GST_FORMAT_TIME    },
     { "BUFFERS"  , GST_FORMAT_BUFFERS },
     { "PERCENT"  , GST_FORMAT_PERCENT }
-};
+} };
 
 int64_t GStreamer::getPipelinePosition(const std::string &format) const
 {
-    const auto it = formatMap.find( format );
-    // Throw argument exception if format not found
-    if ( it == formatMap.cend() )
+    try
     {
-        const std::string options(
-            GstTypes::joinStrings(
-                formatMap.begin(),
-                formatMap.end(),
-                ", ",
-                [](decltype(formatMap)::value_type value)->std::string{ return value.first; }
-            )
-        );
+        const auto value = GstTypes::findValueByKey( formats, format );
 
-        throw Pothos::InvalidArgumentException("GStreamer::getPipelinePosition("+format+")", "Unknown format, can be "+options);
+        gint64 position;
+        if ( gst_element_query_position(GST_ELEMENT( m_pipeline.get() ), value, &position) == TRUE )
+        {
+            return position;
+        }
+        throw Pothos::PropertyNotSupportedException("GStreamer::getPipelinePosition("+format+")", format + " not supported");
     }
-
-    gint64 position;
-    if ( gst_element_query_position(GST_ELEMENT( m_pipeline.get() ), it->second, &position) == TRUE )
+    catch (const Pothos::NotFoundException &e)
     {
-        return position;
+        throw Pothos::InvalidArgumentException("GStreamer::getPipelinePosition("+format+")", "Unknown format, can be " + e.message());
     }
-    throw Pothos::PropertyNotSupportedException("GStreamer::getPipelinePosition("+format+")", format + " not supported");
-    return -1;
 }
 
 int64_t GStreamer::getPipelineDuration(const std::string &format) const
 {
-    const auto it = formatMap.find( format );
-    // Throw argument exception if format not found
-    if ( it == formatMap.cend() )
+    try
     {
-        const std::string options(
-            GstTypes::joinStrings(
-                formatMap.begin(),
-                formatMap.end(),
-                ", ",
-                [](decltype(formatMap)::value_type value)->std::string{ return value.first; }
-            )
-        );
+        const auto value = GstTypes::findValueByKey( formats, format );
 
-        throw Pothos::InvalidArgumentException("GStreamer::getPipelineDuration("+format+")", "Unknown format, can be "+options);
+        gint64 duration;
+        if ( gst_element_query_duration(GST_ELEMENT( m_pipeline.get() ), value, &duration) == TRUE )
+        {
+            return duration;
+        }
+
+        throw Pothos::PropertyNotSupportedException("GStreamer::getPipelineDuration("+format+")", format + " not supported");
     }
-
-    gint64 duration;
-    if ( gst_element_query_duration(GST_ELEMENT( m_pipeline.get() ), it->second, &duration) == TRUE )
+    catch (const Pothos::NotFoundException &e)
     {
-        return duration;
+        throw Pothos::InvalidArgumentException("GStreamer::getPipelineDuration("+format+")", "Unknown format, can be " + e.message());
     }
-    throw Pothos::PropertyNotSupportedException("GStreamer::getPipelineDuration("+format+")", format + " not supported");
-    return -1;
 }
 
 void GStreamer::gstChangeState( GstState state )

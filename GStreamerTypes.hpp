@@ -9,6 +9,7 @@
 #include <Poco/Logger.h>
 #include <string>
 #include <array>
+#include <numeric>
 
 namespace GstTypes
 {
@@ -204,23 +205,25 @@ namespace GstTypes
         }
     };  // struct GVal
 
-    template< typename Iterator, class UnaryFunction >
-    std::string joinStrings(const Iterator begin, const Iterator end, const std::string& separator, UnaryFunction func )
+    template< class T, std::size_t N >
+    T findValueByKey(const std::array< std::pair< std::string, T >, N > & array, const std::string& key)
     {
-        std::string str;
+        for (const auto & item : array)
+        {
+            if (item.first == key)
+            {
+                return item.second;
+            }
+        }
 
-        auto it = begin;
-        if (it != end)
-        {
-            str = func(*it);
-            ++it;
-        }
-        for (; it != end; ++it)
-        {
-            str.append( separator );
-            str.append( func(*it) );
-        }
-        return str;
+        const auto options = std::accumulate(array.cbegin(), array.cend(), std::string(),
+            [ ](const std::string& s, const std::pair< std::string,  T>& p) {
+                return s + (s.empty() ? p.first : (", " + p.first) );
+            }
+        );
+
+        // Throw if we can't find key.
+        throw Pothos::NotFoundException("findKeyInArray", "Key not found, can be " + options);
     }
 
     template< typename T >
