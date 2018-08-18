@@ -255,64 +255,94 @@ namespace GstTypes
 
 //-----------------------------------------------------------------------------
 
-    bool GstCapsCache::equal(const GstCaps *caps1, const GstCaps *caps2) noexcept
+    class GstCapsCache::Impl final
     {
-        if ( caps1 == caps2 )
-        {
-            return true;
-        }
-        if ( ( caps1 == nullptr ) || ( caps2 == nullptr ) )
-        {
-            return false;
-        }
-        return ( gst_caps_is_equal( caps1, caps2 ) == TRUE );
-    }
+        GstTypes::GstCapsPtr m_lastCaps;
+        bool m_change{ false };
+        std::string m_capsStr;
 
-    GstCapsCache::GstCapsCache() :
-        m_change(false)
-    {
-    }
+    public:
+        Impl() = default;
 
-    bool GstCapsCache::diff(GstCaps* caps)
-    {
-        if ( equal(caps, m_lastCaps.get()) )
+        bool equal(const GstCaps *caps1, const GstCaps *caps2) noexcept
         {
-            m_change = false;
+            if ( caps1 == caps2 )
+            {
+                return true;
+            }
+            if ( ( caps1 == nullptr ) || ( caps2 == nullptr ) )
+            {
+                return false;
+            }
+            return ( gst_caps_is_equal( caps1, caps2 ) == TRUE );
+        }
+
+        bool diff(GstCaps* caps)
+        {
+            if ( equal(caps, m_lastCaps.get()) )
+            {
+                m_change = false;
+                return m_change;
+            }
+
+            if ( caps != nullptr )
+            {
+                m_lastCaps.reset( gst_caps_ref( caps ) );
+                m_capsStr = GCharPtr( gst_caps_to_string( caps ) ).get();
+            }
+            else
+            {
+                m_capsStr.clear();
+                m_lastCaps.reset();
+            }
+            m_change = true;
             return m_change;
         }
 
-        if ( caps != nullptr )
+        const std::string& str() const noexcept
         {
-            m_lastCaps.reset( gst_caps_ref( caps ) );
-            m_capsStr = GCharPtr( gst_caps_to_string( caps ) ).get();
+            return m_capsStr;
         }
-        else
+
+        bool change() noexcept
         {
-            m_capsStr.clear();
-            m_lastCaps.reset();
+            return m_change;
         }
-        m_change = true;
-        return m_change;
+
+    };  // class GstCapsCache::Impl
+
+    GstCapsCache::GstCapsCache() :
+        m_impl( new GstCapsCache::Impl( ) )
+    {
+    }
+
+    GstCapsCache::~GstCapsCache() = default;
+
+    GstCapsCache::GstCapsCache(GstCapsCache &&) noexcept = default;
+    GstCapsCache & GstCapsCache::operator= ( GstCapsCache && ) noexcept = default;
+
+    bool GstCapsCache::diff(GstCaps* caps)
+    {
+        return m_impl->diff( caps );
     }
 
     const std::string& GstCapsCache::str() const noexcept
     {
-        return m_capsStr;
+        return m_impl->str();
     }
 
-    bool GstCapsCache::changed() noexcept
+    bool GstCapsCache::change() noexcept
     {
-        const auto changed = m_change;
-        m_change = false;
-        return changed;
+        return m_impl->change();
     }
 
-    std::string GstCapsCache::update(GstCaps* caps, GstCapsCache* gstCapsCach)
+    std::string GstCapsCache::update(GstCaps* caps, GstCapsCache* gstCapsCache)
     {
-        if ( gstCapsCach != nullptr )
+        if ( gstCapsCache != nullptr )
         {
-            gstCapsCach->diff(caps);
-            return gstCapsCach->str();
+            auto impl = gstCapsCache->m_impl.get();
+            impl->diff(caps);
+            return impl->str();
         }
 
         return GCharPtr( gst_caps_to_string( caps ) ).get();

@@ -115,19 +115,23 @@ namespace GstTypes
 
     class GstCapsCache final
     {
-        GstCapsPtr m_lastCaps;
-        bool m_change;
-        std::string m_capsStr;
-
-        static bool equal(const GstCaps *caps1, const GstCaps *caps2) noexcept;
+        class Impl;
+        std::unique_ptr< Impl > m_impl;
 
     public:
-        GstCapsCache();
+        explicit GstCapsCache();
+        ~GstCapsCache();
+
+        GstCapsCache(GstCapsCache &) = delete;
+        GstCapsCache & operator= ( GstCapsCache & ) = delete;
+
+        GstCapsCache(GstCapsCache &&) noexcept;
+        GstCapsCache & operator= ( GstCapsCache && ) noexcept;
 
         bool diff(GstCaps* caps);
         const std::string& str() const noexcept;
-        bool changed() noexcept;
-        static std::string update(GstCaps* caps, GstCapsCache* gstCapsCach);
+        bool change() noexcept;
+        static std::string update(GstCaps* caps, GstCapsCache* gstCapsCache);
     };  // class GstCapsCache
 
     Pothos::Packet makePacketFromGstSample(GstSample* gstSample, GstCapsCache* gstCapsCach);

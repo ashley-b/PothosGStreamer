@@ -197,7 +197,7 @@ namespace
             // Get GStreamer buffer and create Pothos packet from it
             auto packet = GstTypes::makePacketFromGstSample( gstSample, &m_gstCapsCach );
 
-            if ( m_gstCapsCach.changed() )
+            if ( m_gstCapsCach.change() )
             {
                 auto caps = gst_sample_get_caps( gstSample );
                 capsToMetaInfo(caps);
