@@ -24,7 +24,7 @@ public:
     GStreamerSubWorker(GStreamerSubWorker&&) = delete; // Non construction-moveable
     GStreamerSubWorker& operator=(GStreamerSubWorker&&) = delete; // Non moveable
 
-    virtual ~GStreamerSubWorker() = default;
+    virtual ~GStreamerSubWorker();
 
     GStreamer* gstreamerBlock() const;
     const std::string& name() const;

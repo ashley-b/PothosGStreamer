@@ -695,7 +695,7 @@ inline Pothos::Object GstClockTimeToObject(const GstClockTime gstClockTime)
 Pothos::Object GStreamer::getPipelineLatency() const
 {
     std::unique_ptr < GstQuery, GstTypes::Deleter< GstQuery, gst_query_unref > > query( gst_query_new_latency() );
-    auto res = gst_element_query( GST_ELEMENT( m_pipeline.get() ), query.get() );
+    const auto res = gst_element_query( GST_ELEMENT( m_pipeline.get() ), query.get() );
     if (res == FALSE)
     {
         return Pothos::Object();

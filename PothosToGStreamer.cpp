@@ -72,8 +72,8 @@ namespace
             gst_app_src_set_stream_type( m_gstAppSource.get(), GST_APP_STREAM_TYPE_STREAM );
 
             g_object_set( m_gstAppSource.get(),
-    //          "is-live",      FALSE,
-    //          "format",       "GST_FORMAT_TIME",
+    //            "is-live",      FALSE,
+    //            "format",       GST_FORMAT_TIME,
                 "block",        FALSE,              /* We can't block in Pothos work() method */
                 "do-timestamp", TRUE,               /* Get GstAppSrc to time stamp our buffers */
                 nullptr                             /* List termination */
@@ -96,11 +96,11 @@ namespace
 
         bool sendEos()
         {
-            const auto flow_return = gst_app_src_end_of_stream( gstAppSource() );
-            if ( flow_return != GST_FLOW_OK )
+            const auto flowReturn = gst_app_src_end_of_stream( gstAppSource() );
+            if ( flowReturn != GST_FLOW_OK )
             {
-                const auto flowQuark = GstTypes::gquarkToString( gst_flow_to_quark( flow_return ) );
-                poco_warning( GstTypes::logger(), "PothosToGStreamer::sendEos() flow_return = " + std::to_string( flow_return ) + " (" + flowQuark + ")" );
+                const auto flowStr = GstTypes::gquarkToString( gst_flow_to_quark( flowReturn ) );
+                poco_warning( GstTypes::logger(), "PothosToGStreamer::sendEos() flow_return = " + std::to_string( flowReturn ) + " (" + flowStr + ")" );
                 return false;
             }
             return true;
@@ -290,11 +290,11 @@ namespace
                 }
             }
 
-            auto flow_return = gst_app_src_push_buffer( m_runState->gstAppSource(), gstBuffer );
-            if ( flow_return != GST_FLOW_OK )
+            const auto flowReturn = gst_app_src_push_buffer( m_runState->gstAppSource(), gstBuffer );
+            if ( flowReturn != GST_FLOW_OK )
             {
-                const auto flowQuark = GstTypes::gquarkToString( gst_flow_to_quark( flow_return ) );
-                poco_warning( GstTypes::logger(), funcName + " flow_return = " + std::to_string( flow_return ) + " (" + flowQuark + ")" );
+                const auto flowStr = GstTypes::gquarkToString( gst_flow_to_quark( flowReturn ) );
+                poco_warning( GstTypes::logger(), funcName + " flow_return = " + std::to_string( flowReturn ) + " (" + flowStr + ")" );
             }
 
             // Check if packet has EOS flags and if its set
@@ -306,7 +306,7 @@ namespace
                 }
             }
 
-            return ( flow_return >= 0 );
+            return ( flowReturn >= 0 );
         }
 
         void work(long long /* maxTimeoutNs */) override

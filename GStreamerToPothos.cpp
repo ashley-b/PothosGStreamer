@@ -53,9 +53,11 @@ namespace
         {
             if ( GST_AUDIO_INFO_WIDTH( gstAudioInfo ) != GST_AUDIO_INFO_DEPTH( gstAudioInfo ) )
             {
-                poco_warning(GstTypes::logger(),
-                             "GST_AUDIO_INFO_WIDTH( gstAudioInfo ) = " + std::to_string( GST_AUDIO_INFO_WIDTH( gstAudioInfo ) ) + " and " +
-                             "GST_AUDIO_INFO_DEPTH( gstAudioInfo ) = " + std::to_string( GST_AUDIO_INFO_DEPTH( gstAudioInfo ) ) + " do not match, this may produce garbel data.");
+                poco_warning(
+                    GstTypes::logger(),
+                    "GST_AUDIO_INFO_WIDTH( gstAudioInfo ) = " + std::to_string( GST_AUDIO_INFO_WIDTH( gstAudioInfo ) ) + " and " +
+                    "GST_AUDIO_INFO_DEPTH( gstAudioInfo ) = " + std::to_string( GST_AUDIO_INFO_DEPTH( gstAudioInfo ) ) + " do not match, this may produce garbel data."
+                );
             }
 
             if ( GST_AUDIO_INFO_ENDIANNESS( gstAudioInfo ) != G_BYTE_ORDER )

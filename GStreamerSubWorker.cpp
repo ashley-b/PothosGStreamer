@@ -9,6 +9,8 @@ GStreamerSubWorker::GStreamerSubWorker(GStreamer *gstreamerBlock, const std::str
 {
 }
 
+GStreamerSubWorker::~GStreamerSubWorker() = default;
+
 GStreamer* GStreamerSubWorker::gstreamerBlock() const
 {
     return m_gstreamerBlock;
