@@ -491,11 +491,9 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
 
         case GST_MESSAGE_TAG:
         {
-            GstTagList *tags = nullptr;
-            gst_message_parse_tag( gstMessage, &tags );
-            auto objectMsgMap = GstTypes::tagListToObjectKwargs( tags );
-            gst_tag_list_unref( tags );
-            return objectMsgMap;
+            std::unique_ptr < GstTagList, GstTypes::Deleter< GstTagList, gst_tag_list_unref > > tags;
+            gst_message_parse_tag( gstMessage, GstTypes::uniquePtrRef(tags) );
+            return GstTypes::tagListToObjectKwargs( tags.get() );
         }
 
         case GST_MESSAGE_PROPERTY_NOTIFY:

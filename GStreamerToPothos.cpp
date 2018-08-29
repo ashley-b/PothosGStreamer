@@ -271,14 +271,14 @@ namespace
         void work(long long maxTimeoutNs) override
         {
             Pothos::Packet packet;
-// TODO: Add ref tracking
-            GstSample *gst_sample = m_runState->try_pull_sample( maxTimeoutNs * GST_NSECOND );
 
-            if ( gst_sample != nullptr )
+            std::unique_ptr< GstSample, GstTypes::Deleter< GstSample, gst_sample_unref > > gstSample(
+                m_runState->try_pull_sample( maxTimeoutNs * GST_NSECOND )
+            );
+
+            if ( gstSample )
             {
-                packet = m_runState->createPacketFromGstSample( gst_sample );
-
-                gst_sample_unref( gst_sample );
+                packet = m_runState->createPacketFromGstSample( gstSample.get() );
             }
             else
             {
