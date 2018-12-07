@@ -54,7 +54,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gvalue_to_object)
         GstTypes::GVal gvalue(GST_TYPE_STATE);
 
         constexpr gint testValue = GST_STATE_PLAYING;
-        g_value_set_enum(gvalue(), GST_STATE_PLAYING);
+        g_value_set_enum(gvalue(), testValue);
 
         auto obj = gvalue.toPothosObject();
         std::cerr <<  obj.toString() << std::endl;

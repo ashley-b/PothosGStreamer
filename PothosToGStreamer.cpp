@@ -39,7 +39,7 @@ namespace
             auto appSrc = GST_APP_SRC( gstreamerSubWorker->gstreamerBlock()->getPipelineElementByName( gstreamerSubWorker->name() ) );
             if ( appSrc == nullptr )
             {
-                throw Pothos::NullPointerException("PothosToGStreamerRunState::getAppSrcByName", "Could not get find GstAppSrc from \"" + gstreamerSubWorker->name() + "\"");
+                throw Pothos::NullPointerException("PothosToGStreamerRunState::getAppSrcByName", "Could not find a GstAppSrc named \"" + gstreamerSubWorker->name() + "\"");
             }
             return appSrc;
         }

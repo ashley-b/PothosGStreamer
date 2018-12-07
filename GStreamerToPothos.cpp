@@ -44,7 +44,7 @@ namespace
             auto appSink = GST_APP_SINK( gstreamerSubWorker->gstreamerBlock()->getPipelineElementByName( gstreamerSubWorker->name() ) );
             if ( appSink == nullptr )
             {
-                throw Pothos::NullPointerException("GStreamerToPothosRunState::getAppSinkByName", "Could not get find GstAppSink from \"" + gstreamerSubWorker->name() + "\"");
+                throw Pothos::NullPointerException("GStreamerToPothosRunState::getAppSinkByName", "Could not find a GstAppSink named \"" + gstreamerSubWorker->name() + "\"");
             }
             return appSink;
         }
@@ -128,7 +128,7 @@ namespace
             m_eos( false )
         {
             g_object_set( m_gstAppSink.get(),
-                "max-buffers",      20,   /* Limit number of buffer to queue (Provent memory runaway). */
+                "max-buffers",      20,   /* Limit number of buffer to queue (Prevent memory runaway). */
                  nullptr                  /* List termination */
             );
             GstAppSinkCallbacks gstAppSinkCallbacks{
