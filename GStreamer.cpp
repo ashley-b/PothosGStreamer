@@ -574,10 +574,8 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
 
 Pothos::Object GStreamer::gstMessageToObject(GstMessage *gstMessage)
 {
-    const std::string message_type_name( GST_MESSAGE_TYPE_NAME( gstMessage ) );
-
     Pothos::ObjectKwargs objectMap;
-    objectMap[ "type_name"  ] = Pothos::Object( message_type_name );
+    objectMap[ "type_name"  ] = Pothos::Object( std::string( GST_MESSAGE_TYPE_NAME( gstMessage ) ) );
     objectMap[ "src_name"   ] = Pothos::Object( GST_MESSAGE_SRC_NAME( gstMessage ) );
     objectMap[ "time_stamp" ] = Pothos::Object( GST_MESSAGE_TIMESTAMP( gstMessage ) );
     objectMap[ "sqenum"     ] = Pothos::Object( gst_message_get_seqnum( gstMessage ) );

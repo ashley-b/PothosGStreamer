@@ -127,10 +127,9 @@ namespace
             m_eosChanged( false ),
             m_eos( false )
         {
-            g_object_set( m_gstAppSink.get(),
-                "max-buffers",      20,   /* Limit number of buffer to queue (Prevent memory runaway). */
-                 nullptr                  /* List termination */
-            );
+            /* Limit number of buffer to queue (Prevent memory runaway). */
+            gst_app_sink_set_max_buffers(m_gstAppSink.get(), 20);
+
             GstAppSinkCallbacks gstAppSinkCallbacks{
                 &eos,
                 &new_preroll,
