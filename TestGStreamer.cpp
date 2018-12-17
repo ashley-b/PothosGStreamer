@@ -156,28 +156,28 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_if_key_extract_or_default)
 
     // Found key1 test
     {
-        const auto value = GstTypes::ifKeyExtractOrDefault< int >(args, key1, value1Default);
+        const auto value = GstTypes::ifKeyExtract< int >(args, key1).value( value1Default );
         POTHOS_TEST_EQUAL(value, value1);
     }
     // Missing key1 test
     {
-        const auto value = GstTypes::ifKeyExtractOrDefault< int >(args, missingKey, value1Default);
+        const auto value = GstTypes::ifKeyExtract< int >(args, missingKey).value( value1Default );
         POTHOS_TEST_EQUAL(value, value1Default);
     }
     // Convert int to string test
     {
-        const auto value = GstTypes::ifKeyExtractOrDefault< std::string >(args, key1, value2Default);
+        const auto value = GstTypes::ifKeyExtract< std::string >(args, key1).value( value2Default );
         POTHOS_TEST_EQUAL(value, value2Default);
     }
 
     // Found key2 test
     {
-        const auto value = GstTypes::ifKeyExtractOrDefault< std::string >(args, key2, value2Default);
+        const auto value = GstTypes::ifKeyExtract< std::string >(args, key2).value( value2Default );
         POTHOS_TEST_EQUAL(value, value2);
     }
     // Missing key2 test
     {
-        const auto value = GstTypes::ifKeyExtractOrDefault< std::string >(args, missingKey, value2Default);
+        const auto value = GstTypes::ifKeyExtract< std::string >(args, missingKey).value( value2Default );
         POTHOS_TEST_EQUAL(value, value2Default);
     }
 }

@@ -7,6 +7,7 @@
 #include <Pothos/Framework.hpp>
 #include <Pothos/Util/TypeInfo.hpp>
 #include <Poco/Logger.h>
+#include <Poco/Optional.h>
 #include <string>
 #include <array>
 #include <numeric>
@@ -231,41 +232,19 @@ namespace GstTypes
     }
 
     template< typename T >
-    bool ifKeyExtract(const Pothos::ObjectKwargs& map, const std::string& key, T& value)
+    Poco::Optional< T > ifKeyExtract(const Pothos::ObjectKwargs& map, const Pothos::ObjectKwargs::key_type& key)
     {
         const auto key_it = map.find( key );
         if ( key_it == map.cend() )
         {
-            return false;
+            return { };
         }
 
         if ( key_it->second.type() != typeid(T) )
         {
             poco_error( GstTypes::logger(), "Can't convert the value of key \"" + key +
                         "\": (" + key_it->second.getTypeString() + ")\"" + key_it->second.toString() + "\" to " + Pothos::Util::typeInfoToString(typeid(T)) );
-            return false;
-        }
-
-        if ( debug_extra )
-        {
-            poco_information( GstTypes::logger(), "Found key \"" + key + "\", value " + key_it->second.toString() + " (" + key_it->second.getTypeString() + ")");
-        }
-        value = key_it->second.extract< T >();
-        return true;
-    }
-
-    template< typename T >
-    T ifKeyExtractOrDefault(const Pothos::ObjectKwargs &map, const std::string &key, const T &fallBack)
-    {
-        const auto key_it = map.find( key );
-        if ( key_it == map.cend() )
-        {
-            return fallBack;
-        }
-
-        if ( key_it->second.type() != typeid(T) )
-        {
-            return fallBack;
+            return { };
         }
 
         if ( debug_extra )
@@ -273,6 +252,18 @@ namespace GstTypes
             poco_information( GstTypes::logger(), "Found key \"" + key + "\", value " + key_it->second.toString() + " (" + key_it->second.getTypeString() + ")");
         }
         return key_it->second.extract< T >();
+    }
+
+    template< typename T >
+    bool ifKeyExtract(const Pothos::ObjectKwargs& map, const Pothos::ObjectKwargs::key_type& key, T& value)
+    {
+        const auto result = ifKeyExtract< T >(map, key);
+        if ( result.isSpecified() )
+        {
+            value = result.value();
+            return true;
+        }
+        return false;
     }
 
 }  // namespace GstTypes

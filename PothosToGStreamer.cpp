@@ -298,12 +298,9 @@ namespace
             }
 
             // Check if packet has EOS flags and if its set
+            if ( GstTypes::ifKeyExtract< bool >( packet.metadata, GstTypes::PACKET_META_EOS ).value( false ) )
             {
-                const bool eos = GstTypes::ifKeyExtractOrDefault( packet.metadata, GstTypes::PACKET_META_EOS, false );
-                if (eos)
-                {
-                    sendEos();
-                }
+                sendEos();
             }
 
             return ( flowReturn >= 0 );

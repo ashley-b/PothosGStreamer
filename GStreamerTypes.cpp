@@ -179,10 +179,11 @@ namespace GstTypes
         ifKeyExtract( packet.metadata, PACKET_META_OFFSET_END, GST_BUFFER_OFFSET_END( gstBuffer ) );
 
         // Try to convert buffer flags back into GStreamer buffer flags
+        const auto meta_flags_args_result = ifKeyExtract< Pothos::ObjectKwargs >( packet.metadata, PACKET_META_FLAGS );
 
-        Pothos::ObjectKwargs flags_args;
-        if ( ifKeyExtract( packet.metadata, PACKET_META_FLAGS, flags_args )  )
+        if ( meta_flags_args_result.isSpecified() )
         {
+            const auto & flags_args = meta_flags_args_result.value();
             if ( GstTypes::debug_extra )
             {
                 poco_information( GstTypes::logger(), funcName + " We got GST_BUFFER_META_FLAGS in the metadata: " + Pothos::Object( flags_args ).toString() );
@@ -195,10 +196,10 @@ namespace GstTypes
                 {
                     continue;
                 }
-                bool value = false;
-                if ( ifKeyExtract( flags_args, flag.first , value ) )
+                const auto result = ifKeyExtract< bool >( flags_args, flag.first );
+                if ( result.isSpecified() )
                 {
-                    ( value ) ? GST_BUFFER_FLAG_SET(gstBuffer, flag.second) : GST_BUFFER_FLAG_UNSET(gstBuffer, flag.second);
+                    ( result.value() ) ? GST_BUFFER_FLAG_SET(gstBuffer, flag.second) : GST_BUFFER_FLAG_UNSET(gstBuffer, flag.second);
                 }
             }
         }
