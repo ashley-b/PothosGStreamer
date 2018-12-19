@@ -210,25 +210,28 @@ namespace GstTypes
         }
     };  // struct GVal
 
-    template< class T, std::size_t N >
-    T findValueByKey(const std::array< std::pair< std::string, T >, N > & array, const std::string& key)
+    template< typename InputIterator,
+              typename Pair = typename std::iterator_traits< InputIterator >::value_type,
+              typename Key = typename Pair::first_type,
+              typename Value = typename Pair::second_type
+              >
+    Value findValueByKey(InputIterator first, InputIterator last, const Key key)
     {
-        for (const auto & item : array)
+        const auto result = std::find_if(first, last, [ &key ](const Pair& p) { return p.first == key; });
+        if ( result != last)
         {
-            if (item.first == key)
-            {
-                return item.second;
-            }
+            return result->second;
         }
 
-        const auto options = std::accumulate(array.cbegin(), array.cend(), std::string(),
-            [ ](const std::string& s, const std::pair< std::string,  T>& p) {
-                return s + (s.empty() ? p.first : (", " + p.first) );
+        const auto options = std::accumulate(first, last, std::string(),
+            [ ](std::string s, const Pair& p) {
+                s += p.first;
+                if ( !s.empty() ) s += ", ";
+                return std::move( s );
             }
         );
-
         // Throw if we can't find key.
-        throw Pothos::NotFoundException("findKeyInArray", "Key not found, can be " + options);
+        throw Pothos::NotFoundException("Key not found. Valid keys are: " + options);
     }
 
     template< typename T >

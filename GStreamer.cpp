@@ -659,7 +659,7 @@ void GStreamer::setState(const std::string &state)
 
     try
     {
-        const auto value = GstTypes::findValueByKey( states, state );
+        const auto value = GstTypes::findValueByKey( std::begin(states), std::end(states), state );
         // Can only change the state if the pipeline is running
         if ( m_pipeline_active )
         {
@@ -722,7 +722,7 @@ int64_t GStreamer::getPipelinePosition(const std::string &format) const
 {
     try
     {
-        const auto value = GstTypes::findValueByKey( formats, format );
+        const auto value = GstTypes::findValueByKey( std::begin(formats), std::end(formats), format );
 
         gint64 position;
         if ( gst_element_query_position(GST_ELEMENT( m_pipeline.get() ), value, &position) == TRUE )
@@ -741,7 +741,7 @@ int64_t GStreamer::getPipelineDuration(const std::string &format) const
 {
     try
     {
-        const auto value = GstTypes::findValueByKey( formats, format );
+        const auto value = GstTypes::findValueByKey( std::begin(formats), std::end(formats), format );
 
         gint64 duration;
         if ( gst_element_query_duration(GST_ELEMENT( m_pipeline.get() ), value, &duration) == TRUE )
