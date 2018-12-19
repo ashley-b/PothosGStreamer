@@ -16,22 +16,22 @@ namespace GstTypes
 {
     // GStreamer buffer flags
     constexpr int gst_buffer_flag_list_count = 12;
-    extern const std::array< std::pair< std::string, GstBufferFlags >, gst_buffer_flag_list_count > gst_buffer_flag_list;
+    extern const std::array< std::pair< const char * const, GstBufferFlags >, gst_buffer_flag_list_count > gst_buffer_flag_list;
 
     // Packet meta data for GstBuffer
-    extern const std::string PACKET_META_EOS;
+    extern const char PACKET_META_EOS[];
 
-    extern const std::string PACKET_META_SEGMENT;
-    extern const std::string PACKET_META_INFO;
-    extern const std::string PACKET_META_CAPS;
+    extern const char PACKET_META_SEGMENT[];
+    extern const char PACKET_META_INFO[];
+    extern const char PACKET_META_CAPS[];
 
-    extern const std::string PACKET_META_TIMESTAMP;
-    extern const std::string PACKET_META_PTS;
-    extern const std::string PACKET_META_DTS;
-    extern const std::string PACKET_META_FLAGS;
-    extern const std::string PACKET_META_DURATION;
-    extern const std::string PACKET_META_OFFSET;
-    extern const std::string PACKET_META_OFFSET_END;
+    extern const char PACKET_META_TIMESTAMP[];
+    extern const char PACKET_META_PTS[];
+    extern const char PACKET_META_DTS[];
+    extern const char PACKET_META_FLAGS[];
+    extern const char PACKET_META_DURATION[];
+    extern const char PACKET_META_OFFSET[];
+    extern const char PACKET_META_OFFSET_END[];
 
     constexpr bool debug_extra = false;
 

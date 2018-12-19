@@ -10,9 +10,9 @@
 #include <memory>  /* std::unique_ptr */
 #include <type_traits>
 
-extern const std::string signalBusName;
-extern const std::string signalTag;
-extern const std::string signalEosName;
+extern const char signalBusName[];
+extern const char signalTag[];
+extern const char signalEosName[];
 
 // Forward declare
 class GStreamerSubWorker;

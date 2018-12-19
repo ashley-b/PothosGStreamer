@@ -10,7 +10,7 @@
 
 namespace GstTypes
 {
-    const std::array< std::pair< std::string, GstBufferFlags >, gst_buffer_flag_list_count > gst_buffer_flag_list
+    const std::array< std::pair< const char * const, GstBufferFlags >, gst_buffer_flag_list_count > gst_buffer_flag_list
     { {
         { "LIVE"       , GST_BUFFER_FLAG_LIVE        },
         { "DECODE_ONLY", GST_BUFFER_FLAG_DECODE_ONLY },
@@ -27,18 +27,18 @@ namespace GstTypes
     } };
 
     // Packet meta data for GstBuffer
-    const std::string PACKET_META_EOS        ( "eos" );
-    const std::string PACKET_META_SEGMENT    ( "segment" );
-    const std::string PACKET_META_INFO       ( "info" );
-    const std::string PACKET_META_CAPS       ( "caps" );
+    const char PACKET_META_EOS       []{ "eos"        };
+    const char PACKET_META_SEGMENT   []{ "segment"    };
+    const char PACKET_META_INFO      []{ "info"       };
+    const char PACKET_META_CAPS      []{ "caps"       };
 
-    const std::string PACKET_META_TIMESTAMP  ( "timestamp" );
-    const std::string PACKET_META_PTS        ( "pts" );
-    const std::string PACKET_META_DTS        ( "dts" );
-    const std::string PACKET_META_FLAGS      ( "flags" );
-    const std::string PACKET_META_DURATION   ( "duration" );
-    const std::string PACKET_META_OFFSET     ( "offset" );
-    const std::string PACKET_META_OFFSET_END ( "offset_end" );
+    const char PACKET_META_TIMESTAMP []{ "timestamp"  };
+    const char PACKET_META_PTS       []{ "pts"        };
+    const char PACKET_META_DTS       []{ "dts"        };
+    const char PACKET_META_FLAGS     []{ "flags"      };
+    const char PACKET_META_DURATION  []{ "duration"   };
+    const char PACKET_META_OFFSET    []{ "offset"     };
+    const char PACKET_META_OFFSET_END[]{ "offset_end" };
 
     Poco::Logger & logger()
     {

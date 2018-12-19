@@ -55,9 +55,9 @@
 #include <sstream>
 #include <vector>
 
-const std::string signalBusName( "bus" );
-const std::string signalTag( "busTag" );
-const std::string signalEosName( "eos" );
+const char signalBusName[]{ "bus"    };
+const char signalTag    []{ "busTag" };
+const char signalEosName[]{ "eos"    };
 
 GStreamer::GStreamer(const std::string &pipelineString) :
     m_pipeline_string( pipelineString ),
@@ -651,7 +651,7 @@ void GStreamer::processGStreamerMessagesTimeout(GstClockTime timeout)
 
 void GStreamer::setState(const std::string &state)
 {
-    static const std::array< std::pair< std::string, GstState >, 2 > states =
+    static const std::array< std::pair< const char * const, GstState >, 2 > stateOptions =
     { {
         { "PLAY",  GST_STATE_PLAYING },
         { "PAUSE", GST_STATE_PAUSED  }
@@ -659,7 +659,8 @@ void GStreamer::setState(const std::string &state)
 
     try
     {
-        const auto value = GstTypes::findValueByKey( std::begin(states), std::end(states), state );
+        const auto value = GstTypes::findValueByKey( std::begin(stateOptions), std::end(stateOptions), state );
+
         // Can only change the state if the pipeline is running
         if ( m_pipeline_active )
         {
@@ -669,7 +670,7 @@ void GStreamer::setState(const std::string &state)
     }
     catch (const Pothos::NotFoundException &e)
     {
-        throw Pothos::InvalidArgumentException("GStreamer::setState("+state+")", "Unknown state. " + e.message());
+        throw Pothos::InvalidArgumentException("GStreamer::setState("+state+")", e.message());
     }
 }
 
@@ -709,7 +710,7 @@ Pothos::Object GStreamer::getPipelineLatency() const
     return Pothos::Object::make( args );
 }
 
-static const std::array< std::pair< std::string, GstFormat >, 5 > formats
+static const std::array< std::pair< const char * const, GstFormat >, 5 > formatOptions
 { {
     { "DEFAULT"  , GST_FORMAT_DEFAULT },
     { "BYTES"    , GST_FORMAT_BYTES   },
@@ -722,18 +723,18 @@ int64_t GStreamer::getPipelinePosition(const std::string &format) const
 {
     try
     {
-        const auto value = GstTypes::findValueByKey( std::begin(formats), std::end(formats), format );
+        const auto value = GstTypes::findValueByKey( std::begin(formatOptions), std::end(formatOptions), format );
 
         gint64 position;
         if ( gst_element_query_position(GST_ELEMENT( m_pipeline.get() ), value, &position) == TRUE )
         {
             return position;
         }
-        throw Pothos::PropertyNotSupportedException("GStreamer::getPipelinePosition("+format+")", format + " not supported");
+        throw Pothos::PropertyNotSupportedException("GStreamer::getPipelinePosition("+format+")", " not supported");
     }
     catch (const Pothos::NotFoundException &e)
     {
-        throw Pothos::InvalidArgumentException("GStreamer::getPipelinePosition("+format+")", "Unknown format, can be " + e.message());
+        throw Pothos::InvalidArgumentException("GStreamer::getPipelinePosition("+format+")", e.message());
     }
 }
 
@@ -741,7 +742,7 @@ int64_t GStreamer::getPipelineDuration(const std::string &format) const
 {
     try
     {
-        const auto value = GstTypes::findValueByKey( std::begin(formats), std::end(formats), format );
+        const auto value = GstTypes::findValueByKey( std::begin(formatOptions), std::end(formatOptions), format );
 
         gint64 duration;
         if ( gst_element_query_duration(GST_ELEMENT( m_pipeline.get() ), value, &duration) == TRUE )
@@ -749,11 +750,11 @@ int64_t GStreamer::getPipelineDuration(const std::string &format) const
             return duration;
         }
 
-        throw Pothos::PropertyNotSupportedException("GStreamer::getPipelineDuration("+format+")", format + " not supported");
+        throw Pothos::PropertyNotSupportedException("GStreamer::getPipelineDuration("+format+")", " not supported");
     }
     catch (const Pothos::NotFoundException &e)
     {
-        throw Pothos::InvalidArgumentException("GStreamer::getPipelineDuration("+format+")", "Unknown format, can be " + e.message());
+        throw Pothos::InvalidArgumentException("GStreamer::getPipelineDuration("+format+")", e.message());
     }
 }
 
