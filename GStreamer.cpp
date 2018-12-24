@@ -126,27 +126,15 @@ template< class Fn>
 GstIteratorResult gstIteratorForeach(GstIterator* gstIterator, Fn f)
 {
     GstTypes::GVal item;
-    GstIteratorResult result;
 
-    while ( (result = gst_iterator_next(gstIterator, &item.value)) == GST_ITERATOR_OK )
-    {
-        // RAII safe guard to call g_value_reset between iterations
-        struct ValueUnset final
+    while ( true ) {
+        const auto result = gst_iterator_next(gstIterator, &item.value);
+        if ( result!= GST_ITERATOR_OK )
         {
-            GstTypes::GVal *m_value;
-            explicit ValueUnset(GstTypes::GVal *value) noexcept : m_value(value)
-            {
-            }
-            ~ValueUnset()
-            {
-                m_value->reset();
-            }
-        } value_unset(&item);
-
+            return result;
+        }
         f(&item.value);
     }
-
-    return result;
 }
 
 void GStreamer::findSourcesAndSinks(GstBin *bin)
