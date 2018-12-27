@@ -7,6 +7,7 @@
 #include <Pothos/Framework.hpp>
 #include <gst/gst.h>
 #include <string>
+#include <utility>
 
 namespace GstTypes
 {
@@ -265,7 +266,7 @@ namespace GstTypes
     public:
         Impl() = default;
 
-        bool equal(const GstCaps *caps1, const GstCaps *caps2) noexcept
+        static bool equal(const GstCaps *caps1, const GstCaps *caps2) noexcept
         {
             if ( caps1 == caps2 )
             {
@@ -442,7 +443,7 @@ namespace GstTypes
     {
         Pothos::ObjectKwargs obj;
 
-        obj[ "flags"        ] = Pothos::Object( int( segment->flags ) );
+        obj[ "flags"        ] = Pothos::Object( enumToInteger( segment->flags ) );
         obj[ "rate"         ] = Pothos::Object( segment->rate );
         obj[ "applied_rate" ] = Pothos::Object( segment->applied_rate );
         obj[ "format"       ] = Pothos::Object( GstTypes::gstFormatToObjectKwargs( segment->format ) );
@@ -482,7 +483,7 @@ namespace GstTypes
         Pothos::ObjectKwargs args;
         args[ "string"      ] = ( gstFormatDetails != nullptr ) ? gcharToObject( gstFormatDetails->nick ) : Pothos::Object();
         args[ "type"        ] = Pothos::Object( "enum" );
-        args[ "value"       ] = Pothos::Object( int(format) );
+        args[ "value"       ] = Pothos::Object( enumToInteger( format ) );
         args[ "description" ] = ( gstFormatDetails != nullptr ) ? gcharToObject( gstFormatDetails->description ) : Pothos::Object();
 
         return Pothos::Object( args );

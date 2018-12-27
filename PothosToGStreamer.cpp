@@ -150,7 +150,7 @@ namespace
 
     public:
         PothosToGStreamerImpl(const PothosToGStreamerImpl&) = delete;              // No copy constructor
-        PothosToGStreamerImpl& operator= (const PothosToGStreamerImpl&) = delete;  // No equals operator
+        PothosToGStreamerImpl& operator= (const PothosToGStreamerImpl&) = delete;  // No assignment operator
 
         PothosToGStreamerImpl(GStreamer* gstreamerBlock, GstAppSrc* gstAppSource) :
             GStreamerSubWorker( gstreamerBlock, GstTypes::gcharToString( GstTypes::GCharPtr( gst_element_get_name( gstAppSource ) ).get() ) ),

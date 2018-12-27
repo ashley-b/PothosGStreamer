@@ -54,6 +54,7 @@
 #include <gst/gst.h>
 #include <sstream>
 #include <vector>
+#include <utility>
 
 const char signalBusName[]{ "bus"    };
 const char signalTag    []{ "busTag" };

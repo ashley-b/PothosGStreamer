@@ -18,7 +18,7 @@ using json = nlohmann::json;
 
 #define POTHOS_TEST_EQUAL_GCHAR(s1, s2)  POTHOS_TEST_EQUALA((s1), (s2), (std::min( strlen(s1), strlen(s2) )+1))
 
-static const std::string testPath{ "/media/tests" };
+static const char testPath[]{ "/media/tests" };
 
 
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gvalue_to_object)
@@ -34,9 +34,8 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gvalue_to_object)
     }
 
     {
-        GString *gString = g_string_new(testString.c_str());
         GstTypes::GVal value(G_TYPE_GSTRING);
-        g_value_take_boxed(value(), gString);
+        g_value_take_boxed(value(), g_string_new(testString.c_str()) );
 
         auto obj = GstTypes::gvalueToObject(value());
         POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
@@ -198,37 +197,36 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gchar_ptr)
     POTHOS_TEST_EQUAL_GCHAR( gcharPtr.get(), srcString.data() );
 }
 
-static constexpr char testString[]{ "Caution!! test string" };
-
-static void allocTestGChar(gchar **str)
+static void outputArgumentGChar(const gchar *str, gchar **outStr)
 {
-    *str = g_strdup( testString );
+    *outStr = g_strdup( str );
 }
 
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_unique_ptr_ref)
 {
     GstTypes::GCharPtr gcharPtr;
+    static constexpr char testString[]{ "Caution!! test string" };
 
-    allocTestGChar( GstTypes::uniquePtrRef( gcharPtr ) );
+    outputArgumentGChar( testString, GstTypes::uniquePtrRef( gcharPtr ) );
 
     POTHOS_TEST_EQUAL_GCHAR( testString, gcharPtr.get() );
 }
 
-static GError* testGError()
+static GError* newTestGError()
 {
     return g_error_new_literal(gst_core_error_quark(), GST_CORE_ERROR_TOO_LAZY, "Test Error");
 }
 
-static void errorFunc(GError **error)
+static void outputArgumentError(GError **outError)
 {
-    *error = testGError();
+    *outError = newTestGError();
 }
 
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gerror_ptr)
 {
-    GstTypes::GErrorPtr refError( testGError() );
+    GstTypes::GErrorPtr refError( newTestGError() );
     GstTypes::GErrorPtr gerrorPtr;
-    errorFunc( GstTypes::uniquePtrRef( gerrorPtr ) );
+    outputArgumentError( GstTypes::uniquePtrRef( gerrorPtr ) );
 
     POTHOS_TEST_EQUAL(refError->code, gerrorPtr->code);
     POTHOS_TEST_EQUAL(refError->domain, gerrorPtr->domain);
@@ -297,10 +295,9 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_sink)
 {
     constexpr int packetSize = 1024;
     constexpr int sentPacketCount = 2;
-    const std::string test_pipe1 = "fakesrc sizetype=fixed filltype=pattern sizemax=" + std::to_string( packetSize ) + " num-buffers=" + std::to_string( sentPacketCount ) + " ! appsink name=src1";
-    const std::string test_pipe2 = "audiotestsrc ! appsink name=src1";
+    const std::string testPipe = "fakesrc sizetype=fixed filltype=pattern sizemax=" + std::to_string( packetSize ) + " num-buffers=" + std::to_string( sentPacketCount ) + " ! appsink name=src1";
 
-    auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", test_pipe1 );
+    auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", testPipe );
     auto collector_sink = Pothos::BlockRegistry::make( "/blocks/collector_sink", "int8" );
 
     // Run the topology
@@ -351,13 +348,13 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_sink)
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_tag_sink)
 {
     constexpr int sentPacketCount = 2;
-    const std::string test_pipe1 =
+    const std::string testPipe =
         "fakesrc sizetype=fixed sizetype=empty num-buffers=" + std::to_string( sentPacketCount ) +
         " ! taginject tags=\"keywords={\\\"Fake\\\",\\\"Raw\\\"},title=\\\"Fake Data\\\"\" ! appsink name=src1";
         //" ! taginject tags='title=\"test\"' ! appsink name=src1";
 
 
-    auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", test_pipe1 );
+    auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", testPipe );
     auto collector_sink = Pothos::BlockRegistry::make( "/blocks/collector_sink", "int8" );
 
     auto slot_to_message = Pothos::BlockRegistry::make( "/blocks/slot_to_message", signalTag );
@@ -452,7 +449,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_tag_sink)
 
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_passthrough)
 {
-    const std::string passthrough_pipeline = "appsrc name=in ! appsink name=out";
+    const char passthrough_pipeline[]{ "appsrc name=in ! appsink name=out" };
 
     auto feederSource = Pothos::BlockRegistry::make( "/blocks/feeder_source", "int8" );
 
@@ -487,13 +484,13 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_passthrough)
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_create_destroy)
 {
     POTHOS_TEST_CHECKPOINT();
-    {
-        auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", "fakesrc ! fakesink" );
-    }
+
+    (void)Pothos::BlockRegistry::make( "/media/gstreamer", "fakesrc ! fakesink" );
+
     POTHOS_TEST_CHECKPOINT();
-    {
-        auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", "fakesrc ! fakesink" );
-    }
+
+    (void)Pothos::BlockRegistry::make( "/media/gstreamer", "fakesrc ! fakesink" );
+
     POTHOS_TEST_CHECKPOINT();
 }
 

@@ -39,6 +39,12 @@ namespace GstTypes
 
     std::string boolToString(bool x);
 
+    template< typename T >
+    inline typename std::underlying_type< T >::type enumToInteger(T e)
+    {
+        return static_cast< typename std::underlying_type< T >::type >( e );
+    }
+
     template< typename T, void(*Fn)(T*) >
     struct Deleter
     {
@@ -123,7 +129,7 @@ namespace GstTypes
         explicit GstCapsCache();
         ~GstCapsCache();
 
-        GstCapsCache(GstCapsCache &) = delete;
+        GstCapsCache(const GstCapsCache &) = delete;
         GstCapsCache & operator= ( GstCapsCache & ) = delete;
 
         GstCapsCache(GstCapsCache &&) noexcept;
