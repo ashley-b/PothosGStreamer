@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2018 Ashley Brighthope
+/// Copyright (c) 2017-2019 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 #pragma once
@@ -103,7 +103,7 @@ namespace GstTypes
         return UniquePtrRef< T >( ptr );
     }
 
-    std::string gquarkToString(GQuark quark);
+    Poco::Optional< std::string > gquarkToString(GQuark quark);
 
     std::string gerrorToString(const GError *gError);
 

@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2018 Ashley Brighthope
+/// Copyright (c) 2017-2019 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 #include "GStreamerTypes.hpp"
@@ -52,10 +52,14 @@ namespace GstTypes
         return (x) ? "true" : "false";
     }
 
-    std::string gquarkToString(GQuark quark)
+    Poco::Optional< std::string > gquarkToString(GQuark quark)
     {
         const auto quarkStr = g_quark_to_string( quark );
-        return gcharToString( quarkStr );
+        if ( quarkStr == nullptr )
+        {
+            return { };
+        }
+        return std::string( quarkStr );
     }
 
     std::string gerrorToString(const GError *gError)
@@ -98,7 +102,7 @@ namespace GstTypes
                 auto self = static_cast< GstStructureForeach* >( user_data );
                 try
                 {
-                    (self->fields)[ gquarkToString( field_id ) ] = gvalueToObject( value );
+                    (self->fields)[ gquarkToString( field_id ).value() ] = gvalueToObject( value );
                     return TRUE;
                 }
                 catch (...)  // Save any exception for when we leave gstreamer foreach
@@ -524,9 +528,10 @@ namespace GstTypes
         {
             Pothos::ObjectKwargs args;
             auto gError = static_cast< const GError* >( boxedData );
-            args[ "domain_id" ] = Pothos::Object( gError->domain );
-            args[ "domain"    ] = Pothos::Object( gquarkToString( gError->domain ) );
             args[ "message"   ] = gcharToObject( gError->message );
+            args[ "domain_id" ] = Pothos::Object( gError->domain );
+            const auto domain = gquarkToString( gError->domain );
+            args[ "domain"    ] = ( domain.isSpecified() ) ? Pothos::Object( domain.value() ) : Pothos::Object{};
             return Pothos::Object::make( args );
         }
 

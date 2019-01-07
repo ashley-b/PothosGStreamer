@@ -7,6 +7,11 @@
 #include <gst/app/gstappsrc.h>
 #include <string>
 
+static std::string GstFlowToString(GstFlowReturn gstFlowReturn)
+{
+    return GstTypes::gquarkToString( gst_flow_to_quark( gstFlowReturn ) ).value("unknown");
+}
+
 namespace
 {
 
@@ -99,7 +104,7 @@ namespace
             const auto flowReturn = gst_app_src_end_of_stream( gstAppSource() );
             if ( flowReturn != GST_FLOW_OK )
             {
-                const auto flowStr = GstTypes::gquarkToString( gst_flow_to_quark( flowReturn ) );
+                const auto flowStr = GstFlowToString( flowReturn );
                 poco_warning( GstTypes::logger(), "PothosToGStreamer::sendEos() flow_return = " + std::to_string( flowReturn ) + " (" + flowStr + ")" );
                 return false;
             }
@@ -293,7 +298,7 @@ namespace
             const auto flowReturn = gst_app_src_push_buffer( m_runState->gstAppSource(), gstBuffer );
             if ( flowReturn != GST_FLOW_OK )
             {
-                const auto flowStr = GstTypes::gquarkToString( gst_flow_to_quark( flowReturn ) );
+                const auto flowStr = GstFlowToString( flowReturn );
                 poco_warning( GstTypes::logger(), funcName + " flow_return = " + std::to_string( flowReturn ) + " (" + flowStr + ")" );
             }
 
