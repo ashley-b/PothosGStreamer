@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2018 Ashley Brighthope
+/// Copyright (c) 2017-2019 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 #include "PothosToGStreamer.hpp"
@@ -155,7 +155,7 @@ namespace
         PothosToGStreamerImpl(GStreamer* gstreamerBlock, GstAppSrc* gstAppSource) :
             GStreamerSubWorker( gstreamerBlock, GstTypes::gcharToString( GstTypes::GCharPtr( gst_element_get_name( gstAppSource ) ).get() ) ),
             m_pothosInputPort( gstreamerBlock->setupInput( name() ) ), // Allocate Pothos input port for GStreamer
-            m_tag_app_data( new std::string() ),
+            m_tag_app_data( std::make_shared< std::string >() ),
             m_runState()
         {
             // Register Callable and Probe
