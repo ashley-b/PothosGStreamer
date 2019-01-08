@@ -41,12 +41,12 @@ namespace
 
         static GstAppSrc* getAppSrcByName(GStreamerSubWorker *gstreamerSubWorker)
         {
-            auto appSrc = GST_APP_SRC( gstreamerSubWorker->gstreamerBlock()->getPipelineElementByName( gstreamerSubWorker->name() ) );
-            if ( appSrc == nullptr )
+            auto element = gstreamerSubWorker->gstreamerBlock()->getPipelineElementByName( gstreamerSubWorker->name() );
+            if ( !GST_IS_APP_SRC( element.get() ) )
             {
                 throw Pothos::NullPointerException("PothosToGStreamerRunState::getAppSrcByName", "Could not find a GstAppSrc named \"" + gstreamerSubWorker->name() + "\"");
             }
-            return appSrc;
+            return reinterpret_cast< GstAppSrc* >( element.release() );
         }
 
     public:

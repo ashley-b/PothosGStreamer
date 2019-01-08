@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2018 Ashley Brighthope
+/// Copyright (c) 2017-2019 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 /***********************************************************************
@@ -118,9 +118,9 @@ Pothos::Block *GStreamer::make(const std::string &pipelineString)
     return new GStreamer( pipelineString );
 }
 
-GstElement* GStreamer::getPipelineElementByName(const std::string &name) const
+GstTypes::GstElementPtr GStreamer::getPipelineElementByName(const std::string &name) const
 {
-    return gst_bin_get_by_name( GST_BIN( getPipeline() ), name.c_str() );
+    return GstTypes::GstElementPtr( gst_bin_get_by_name( GST_BIN( getPipeline() ), name.c_str() ) );
 }
 
 template< class Fn>
@@ -212,7 +212,7 @@ void GStreamer::createPipeline()
     const std::string funcName("GStreamer::createPipeline");
 
     GstTypes::GErrorPtr errorPtr;
-    std::unique_ptr< GstElement, GstTypes::GstObjectUnrefFunc > element(
+    GstTypes::GstElementPtr element(
         gst_parse_launch_full( m_pipeline_string.c_str(), nullptr, GST_PARSE_FLAG_FATAL_ERRORS, GstTypes::uniquePtrRef(errorPtr) )
     );
 

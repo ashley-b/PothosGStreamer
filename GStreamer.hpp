@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2018 Ashley Brighthope
+/// Copyright (c) 2017-2019 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 #pragma once
@@ -48,7 +48,7 @@ public:
 
     static Block *make(const std::string &pipelineString);
 
-    GstElement* getPipelineElementByName(const std::string &name) const;
+    GstTypes::GstElementPtr getPipelineElementByName(const std::string &name) const;
 
     std::string getPipelineString() const;
     GstPipeline* getPipeline() const;

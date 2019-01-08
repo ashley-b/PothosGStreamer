@@ -55,12 +55,13 @@ namespace GstTypes
     };
 
     using GPointerType = std::remove_pointer< gpointer >::type;
-    using GstObjectUnrefFunc = GstTypes::Deleter< GPointerType, gst_object_unref >;
+    using GstObjectUnrefFunc = Deleter< GPointerType, gst_object_unref >;
 
     using GstIteratorPtr = std::unique_ptr < GstIterator, Deleter< GstIterator, gst_iterator_free > >;
     using GCharPtr = std::unique_ptr < gchar, Deleter< GPointerType, g_free > >;
     using GErrorPtr = std::unique_ptr < GError, Deleter< GError, g_error_free > >;
-    using GstCapsPtr = std::unique_ptr< GstCaps, GstTypes::Deleter< GstCaps, gst_caps_unref > >;
+    using GstCapsPtr = std::unique_ptr< GstCaps, Deleter< GstCaps, gst_caps_unref > >;
+    using GstElementPtr = std::unique_ptr < GstElement, GstObjectUnrefFunc >;
 
     template< typename T >
     class UniquePtrRef final {

@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2018 Ashley Brighthope
+/// Copyright (c) 2017-2019 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 #include "GStreamerToPothos.hpp"
@@ -41,12 +41,12 @@ namespace
 
         static GstAppSink* getAppSinkByName(GStreamerSubWorker *gstreamerSubWorker)
         {
-            auto appSink = GST_APP_SINK( gstreamerSubWorker->gstreamerBlock()->getPipelineElementByName( gstreamerSubWorker->name() ) );
-            if ( appSink == nullptr )
+            auto element = gstreamerSubWorker->gstreamerBlock()->getPipelineElementByName( gstreamerSubWorker->name() );
+            if ( !GST_IS_APP_SINK( element.get() ) )
             {
                 throw Pothos::NullPointerException("GStreamerToPothosRunState::getAppSinkByName", "Could not find a GstAppSink named \"" + gstreamerSubWorker->name() + "\"");
             }
-            return appSink;
+            return reinterpret_cast< GstAppSink* >( element.release() );
         }
 
         static Pothos::DType gstreamerTypeToDtype(const GstAudioInfo *gstAudioInfo)
