@@ -708,7 +708,8 @@ namespace GstTypes
         else
         {
             Pothos::ObjectVector objectVector;
-            for ( std::remove_const< decltype(num) >::type i = 0; i < num; ++i )
+            objectVector.reserve( num );
+            for ( auto i = decltype(num){ 0 }; i < num; ++i )
             {
                 const GValue *g_val = gst_tag_list_get_value_index( list, tag, i );
 
