@@ -25,7 +25,7 @@ private:
     std::unique_ptr< GstBus, GstTypes::GstObjectUnrefFunc > m_bus;
     std::vector< std::unique_ptr< GStreamerSubWorker > > m_gstreamerSubWorkers;
     int m_blockingNodes;
-    bool m_pipeline_active;
+    bool m_pipelineActive;
     GstState m_gstState;
 
     void gstChangeState( GstState state );

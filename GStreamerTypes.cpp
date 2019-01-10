@@ -11,7 +11,7 @@
 
 namespace GstTypes
 {
-    const std::array< std::pair< const char * const, GstBufferFlags >, gst_buffer_flag_list_count > gst_buffer_flag_list
+    const std::array< std::pair< const char * const, GstBufferFlags >, GST_BUFFER_FLAG_LIST_SIZE > gst_buffer_flag_list
     { {
         { "LIVE"       , GST_BUFFER_FLAG_LIVE        },
         { "DECODE_ONLY", GST_BUFFER_FLAG_DECODE_ONLY },
@@ -120,7 +120,7 @@ namespace GstTypes
         {
             return Pothos::ObjectKwargs();
         }
-        GstStructureForeach  gstStructureForeach;
+        GstStructureForeach gstStructureForeach;
 
         if ( gst_structure_foreach(gstStructure, GstStructureForeach::gstStructureForeachFunc, &gstStructureForeach) == FALSE )
         {
@@ -555,9 +555,9 @@ namespace GstTypes
 
         if ( type == GST_TYPE_BUFFER )
         {
-            auto gst_buffer = static_cast< GstBuffer* >( boxedData );
+            auto gstBuffer = static_cast< GstBuffer* >( boxedData );
 
-            auto packet = makePacketFromGstBuffer( gst_buffer );
+            auto packet = makePacketFromGstBuffer( gstBuffer );
 
             return Pothos::Object::make( packet );
         }

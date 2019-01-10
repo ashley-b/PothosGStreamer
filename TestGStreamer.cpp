@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2018 Ashley Brighthope
+/// Copyright (c) 2017-2019 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 #include "GStreamer.hpp"
@@ -400,9 +400,9 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_tag_sink)
 
             bool foundFake = false;
             bool foundRaw = false;
-            for (const auto & keyword :  keywords )
+            for (const auto & keyword : keywords )
             {
-                const auto &keywordStr( keyword.extract< std::string >() );
+                const auto &keywordStr = keyword.extract< std::string >();
                 if ( keywordStr == "Fake")
                 {
                     foundFake = true;

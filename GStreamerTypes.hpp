@@ -15,8 +15,8 @@
 namespace GstTypes
 {
     // GStreamer buffer flags
-    constexpr int gst_buffer_flag_list_count = 12;
-    extern const std::array< std::pair< const char * const, GstBufferFlags >, gst_buffer_flag_list_count > gst_buffer_flag_list;
+    constexpr int GST_BUFFER_FLAG_LIST_SIZE = 12;
+    extern const std::array< std::pair< const char * const, GstBufferFlags >, GST_BUFFER_FLAG_LIST_SIZE > gst_buffer_flag_list;
 
     // Packet meta data for GstBuffer
     extern const char PACKET_META_EOS[];
@@ -170,13 +170,11 @@ namespace GstTypes
 
     struct GVal final
     {
-        ::GValue value;
+        ::GValue value = G_VALUE_INIT;
 
-        GVal() noexcept : value( G_VALUE_INIT )
-        {
-        }
+        GVal() noexcept = default;
 
-        explicit GVal(GType g_type) noexcept : value( G_VALUE_INIT )
+        explicit GVal(GType g_type) noexcept
         {
             g_value_init( &value, g_type );
         }

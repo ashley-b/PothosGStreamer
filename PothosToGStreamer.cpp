@@ -19,7 +19,7 @@ namespace
     private:
         std::unique_ptr< GstAppSrc, GstTypes::GstObjectUnrefFunc > m_gstAppSource;
         GstTypes::GstCapsPtr m_baseCaps;
-        bool m_tag_send_app_data_once;
+        bool m_tagSendAppDataOnce;
         std::atomic_bool m_needData;
 
         static void need_data(GstAppSrc * /* src */, guint /* length */, gpointer user_data)
@@ -59,7 +59,7 @@ namespace
         explicit PothosToGStreamerRunState(GStreamerSubWorker *gstreamerSubWorker) :
             m_gstAppSource( getAppSrcByName( gstreamerSubWorker ) ),
             m_baseCaps( nullptr ),
-            m_tag_send_app_data_once( true ),
+            m_tagSendAppDataOnce( true ),
             m_needData( false )
         {
             // Save the caps if they were set from pipeline
@@ -126,11 +126,11 @@ namespace
             return m_needData.load();
         }
 
-        bool tag_send_app_data_once()
+        bool tagSendAppDataOnce()
         {
-            if ( m_tag_send_app_data_once )
+            if ( m_tagSendAppDataOnce )
             {
-                m_tag_send_app_data_once = false;
+                m_tagSendAppDataOnce = false;
                 return true;
             }
             return false;
@@ -208,7 +208,7 @@ namespace
             m_runState.reset();
         }
 
-        bool send_gstreamer_app_tags()
+        bool sendGstreamerAppTags()
         {
             GstTagList *gstTagList = gst_tag_list_new(
                 GST_TAG_APPLICATION_NAME, "Pothos",
@@ -251,9 +251,9 @@ namespace
             const std::string funcName( "PothosToGStreamer::sendToGStreamer" );
 
             // Try to push a GStreamer tag on first buffer push
-            if ( m_runState->tag_send_app_data_once() )
+            if ( m_runState->tagSendAppDataOnce() )
             {
-                send_gstreamer_app_tags();
+                sendGstreamerAppTags();
             }
 
             // If GStreamer AppSrc is full bail
@@ -282,7 +282,7 @@ namespace
                         poco_information( GstTypes::logger(), funcName + " We got caps in the metadata: " + caps );
                     }
                     auto gstCaps = gst_caps_from_string( caps.c_str() );
-                    // If buffer packet had caps, push caps in with buffer in sample
+                    // If pothos packet has GStreamer caps add it to next GstBuffer push
                     if (gstCaps != nullptr)
                     {
                         gst_app_src_set_caps( m_runState->gstAppSource(), gstCaps );

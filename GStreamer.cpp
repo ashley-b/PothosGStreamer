@@ -66,7 +66,7 @@ GStreamer::GStreamer(const std::string &pipelineString) :
     m_bus( ),
     m_gstreamerSubWorkers( ),
     m_blockingNodes( 0 ),
-    m_pipeline_active( false ),
+    m_pipelineActive( false ),
     m_gstState( GST_STATE_PLAYING )
 {
     if ( GstStatic::getInitError() != nullptr )
@@ -321,23 +321,23 @@ Pothos::ObjectKwargs GStreamer::gstMessageInfoWarnError( GstMessage *message )
     const std::string prefix( std::string( "GStreamer " ) + logLevel.first + ": " );
 
     GstTypes::GCharPtr objectName( gst_object_get_name( message->src ) );
-    std::ostringstream error_message;
-    error_message << prefix;
-    error_message << "From element: " << objectName.get();
-    error_message << ", Code: " << errorPtr->code;
-    error_message << ", Message: " << errorPtr->message;
+    std::ostringstream errorMessage;
+    errorMessage << prefix;
+    errorMessage << "From element: " << objectName.get();
+    errorMessage << ", Code: " << errorPtr->code;
+    errorMessage << ", Message: " << errorPtr->message;
 
     Pothos::ObjectKwargs objectMap;
     objectMap[ "message" ] = GstTypes::gcharToObject( errorPtr->message );
     objectMap[ "code"    ] = Pothos::Object( errorPtr->code );
 
-    std::ostringstream debug_message;
-    debug_message << prefix << "Debugging info: " << (( dbgInfoPtr ) ? dbgInfoPtr.get() : "none");
+    std::ostringstream debugMessage;
+    debugMessage << prefix << "Debugging info: " << (( dbgInfoPtr ) ? dbgInfoPtr.get() : "none");
 
     objectMap[ "debug_message" ] = GstTypes::gcharToObject( dbgInfoPtr.get() );
 
-    GstTypes::logger().log( Poco::Message( GstTypes::logger().name(), error_message.str(), logLevel.second ) );
-    GstTypes::logger().log( Poco::Message( GstTypes::logger().name(), debug_message.str(), logLevel.second ) );
+    GstTypes::logger().log( Poco::Message( GstTypes::logger().name(), errorMessage.str(), logLevel.second ) );
+    GstTypes::logger().log( Poco::Message( GstTypes::logger().name(), debugMessage.str(), logLevel.second ) );
 
     return objectMap;
 }
@@ -354,7 +354,7 @@ static Pothos::ObjectKwargs clockInfo(GstClock *clock)
 void GStreamer::workerStop(const std::string & reason)
 {
     // Stop pipeline if there was an error
-    m_pipeline_active = false;
+    m_pipelineActive = false;
 
     poco_warning( GstTypes::logger(), "Pipeline has stopped, reason: " + reason + ". This block will do nothing for the remainder of this running topology" );
 }
@@ -651,7 +651,7 @@ void GStreamer::setState(const std::string &state)
         const auto value = GstTypes::findValueByKey( std::begin(stateOptions), std::end(stateOptions), state );
 
         // Can only change the state if the pipeline is running
-        if ( m_pipeline_active )
+        if ( m_pipelineActive )
         {
             this->gstChangeState( value );
         }
@@ -816,7 +816,7 @@ void GStreamer::activate()
         throw;
     }
 
-    m_pipeline_active = true;
+    m_pipelineActive = true;
 }
 
 void GStreamer::deactivate()
@@ -836,7 +836,7 @@ void GStreamer::propagateLabels(const Pothos::InputPort * /*input*/)
 
 void GStreamer::work()
 {
-    if ( m_pipeline_active == false )
+    if ( m_pipelineActive == false )
     {
         return;
     }

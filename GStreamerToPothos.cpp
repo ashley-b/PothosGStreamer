@@ -177,7 +177,7 @@ namespace
             return m_bufferCount.load();
         }
 
-        GstSample* try_pull_sample( GstClockTime timeout )
+        GstSample* tryPullSample( GstClockTime timeout )
         {
             const auto eos = ( gst_app_sink_is_eos( m_gstAppSink.get() ) == TRUE );
             if (eos != m_eos)
@@ -185,12 +185,12 @@ namespace
                 m_eosChanged = true;
                 m_eos = eos;
             }
-            GstSample *gst_sample = gst_app_sink_try_pull_sample( m_gstAppSink.get(), timeout );
-            if (gst_sample != nullptr)
+            GstSample *gstSample = gst_app_sink_try_pull_sample( m_gstAppSink.get(), timeout );
+            if (gstSample != nullptr)
             {
                 m_bufferCount--;
             }
-            return gst_sample;
+            return gstSample;
         }
 
         Pothos::Packet createPacketFromGstSample(GstSample* gstSample)
@@ -272,7 +272,7 @@ namespace
             Pothos::Packet packet;
 
             std::unique_ptr< GstSample, GstTypes::Deleter< GstSample, gst_sample_unref > > gstSample(
-                m_runState->try_pull_sample( maxTimeoutNs * GST_NSECOND )
+                m_runState->tryPullSample( maxTimeoutNs * GST_NSECOND )
             );
 
             if ( gstSample )
