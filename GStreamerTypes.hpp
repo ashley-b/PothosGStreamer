@@ -57,28 +57,29 @@ namespace GstTypes
     using GPointerType = std::remove_pointer< gpointer >::type;
     using GstObjectUnrefFunc = Deleter< GPointerType, gst_object_unref >;
 
-    using GstIteratorPtr = std::unique_ptr < GstIterator, Deleter< GstIterator, gst_iterator_free > >;
-    using GCharPtr = std::unique_ptr < gchar, Deleter< GPointerType, g_free > >;
-    using GErrorPtr = std::unique_ptr < GError, Deleter< GError, g_error_free > >;
-    using GstCapsPtr = std::unique_ptr< GstCaps, Deleter< GstCaps, gst_caps_unref > >;
-    using GstElementPtr = std::unique_ptr < GstElement, GstObjectUnrefFunc >;
+    using GstIteratorPtr = std::unique_ptr< GstIterator, Deleter< GstIterator, gst_iterator_free > >;
+    using GCharPtr       = std::unique_ptr< gchar, Deleter< GPointerType, g_free > >;
+    using GErrorPtr      = std::unique_ptr< GError, Deleter< GError, g_error_free > >;
+    using GstCapsPtr     = std::unique_ptr< GstCaps, Deleter< GstCaps, gst_caps_unref > >;
+    using GstElementPtr  = std::unique_ptr< GstElement, GstObjectUnrefFunc >;
 
-    template< typename T >
+    /* Helper class to capture output arguments into std::unique_ptr */
+    template< typename T, typename D >
     class UniquePtrRef final {
-        T *m_ptr;
-        typename T::element_type *m_ref;
+        std::unique_ptr< T, D > *m_ptr;
+        T *m_ref{ nullptr };
 
     public:
-        using element_type = typename T::element_type;
+        using element_type = T;
 
+        UniquePtrRef() = delete;
         UniquePtrRef& operator=(const UniquePtrRef&) = delete;
         UniquePtrRef(const UniquePtrRef&) = delete;
         UniquePtrRef(UniquePtrRef&&) = default;
         UniquePtrRef& operator=(UniquePtrRef&&) = default;
 
-        explicit UniquePtrRef(T &ptr) noexcept :
-            m_ptr( std::addressof( ptr ) ),
-            m_ref( nullptr )
+        explicit UniquePtrRef(std::unique_ptr< T, D > &ptr) noexcept :
+            m_ptr( std::addressof( ptr ) )
         {
         }
 
@@ -96,12 +97,12 @@ namespace GstTypes
         {
             return &m_ref;
         }
-    };  // class UniquePtrRef< T >
+    };  // class UniquePtrRef< T, D >
 
-    template< typename T>
-    inline UniquePtrRef< T > uniquePtrRef(T &ptr) noexcept
+    template< typename T, typename D >
+    inline UniquePtrRef< T, D > uniquePtrRef(std::unique_ptr< T, D > &ptr) noexcept
     {
-        return UniquePtrRef< T >( ptr );
+        return UniquePtrRef< T, D >( ptr );
     }
 
     Poco::Optional< std::string > gquarkToString(GQuark quark);
