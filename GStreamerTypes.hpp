@@ -210,6 +210,11 @@ namespace GstTypes
             return gvalueToObjectKwargs( &value );
         }
 
+        GType type() const noexcept
+        {
+            return G_VALUE_TYPE( &value );
+        }
+
         ::GValue* operator()() noexcept
         {
             return &value;

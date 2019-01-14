@@ -20,32 +20,41 @@ using json = nlohmann::json;
 
 static const char testPath[]{ "/media/tests" };
 
+template< typename T >
+std::vector< T > createSequentialValues(typename std::vector< T >::size_type size, T init = {})
+{
+    std::vector< T > v( size );
+    std::iota(v.begin(), v.end(), init);
+    return v;
+}
 
 POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gvalue_to_object)
 {
-    const std::string testString( "test 1, 2" );
     {
-        GstTypes::GVal value(G_TYPE_STRING);
-        g_value_set_static_string(value(), testString.c_str() );
+        const std::string testString( "test 1, 2" );
+        {
+            GstTypes::GVal value(G_TYPE_STRING);
+            g_value_set_static_string(value(), testString.c_str() );
 
-        auto obj = GstTypes::gvalueToObject(value());
-        POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
-        POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
-    }
+            auto obj = GstTypes::gvalueToObject(value());
+            POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
+            POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
+        }
 
-    {
-        GstTypes::GVal value(G_TYPE_GSTRING);
-        g_value_take_boxed(value(), g_string_new(testString.c_str()) );
+        {
+            GstTypes::GVal value(G_TYPE_GSTRING);
+            g_value_take_boxed(value(), g_string_new(testString.c_str()) );
 
-        auto obj = GstTypes::gvalueToObject(value());
-        POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
-        POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
-    }
+            auto obj = GstTypes::gvalueToObject(value());
+            POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
+            POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
+        }
 
-    {
-        auto obj = GstTypes::gcharToObject( testString.c_str() );
-        POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
-        POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
+        {
+            auto obj = GstTypes::gcharToObject( testString.c_str() );
+            POTHOS_TEST_EQUAL(obj.type().hash_code(), typeid(testString).hash_code());
+            POTHOS_TEST_EQUAL(obj.extract< std::string >(), testString);
+        }
     }
 
     // GValue enum test
@@ -128,11 +137,20 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gvalue_to_object)
         }
 
         {
-            const char testData[] = { 1, 2, 3, 4 };
+            const auto testData = createSequentialValues< int8_t >( 1024 );
             GstTypes::GVal v(G_TYPE_BYTES);
-            g_value_take_boxed( &v.value, g_bytes_new_static( &testData, sizeof(testData) ) );
+            g_value_take_boxed( &v.value, g_bytes_new_static( testData.data(), testData.size() ) );
 
+            POTHOS_TEST_EQUAL( v.type(), G_TYPE_BYTES );
             poco_information( GstTypes::logger(), "v.toDebugString() = " + Pothos::Object( v.toDebugObjectKwargs() ).toString() );
+
+            auto box = reinterpret_cast< GBytes* >( g_value_get_boxed( &v.value ) );
+            gsize boxSize;
+            const auto boxData = reinterpret_cast< const char* >( g_bytes_get_data( box, &boxSize ) );
+
+            POTHOS_TEST_EQUAL( boxSize, testData.size());
+
+            POTHOS_TEST_EQUALA(testData, boxData, boxSize );
         }
     }
 }
@@ -239,15 +257,11 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_source)
     vector_source.call( "setMode", "ONCE" );
 
     // Allocate some fake data
-    std::vector< int8_t > testData;
-    testData.resize( 2048 );
-    // Create sequentially increasing test data.
-    std::iota(testData.begin(), testData.end(), 0);
+    const auto testData = createSequentialValues< int8_t >( 2048 );
 
     // Convert our real values to complex values for setElements method
     {
-        std::vector< std::complex< double > > dataComplex;
-        dataComplex.resize( testData.size() );
+        std::vector< std::complex< double > > dataComplex( testData.size() ) ;
         std::copy(testData.cbegin(), testData.cend(), dataComplex.begin() );
 
         vector_source.call( "setElements", dataComplex );
@@ -273,7 +287,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_source)
 
     const auto fileSize = tempFile.getSize();
 
-    //Check output file size is the same as the input test data
+    // Check output file size is the same as the input test data
     POTHOS_TEST_EQUAL( fileSize , testData.size() );
 
     std::fstream fs;
@@ -281,8 +295,8 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_source)
     POTHOS_TEST_TRUE( (fs) );  // Make sure file can be opend. Should be written by GStreamer during above test
 
     // Reading output file, from GStreamer
-    std::vector< int8_t > fileBuffer;
-    fileBuffer.resize( fileSize );
+    std::vector< int8_t > fileBuffer( fileSize );
+
     fs.read( reinterpret_cast< decltype( fs )::char_type* >( fileBuffer.data() ), fileBuffer.size() );
     POTHOS_TEST_TRUE( (fs) );
     fs.close();
@@ -311,10 +325,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_sink)
     }
 
     // Create fake data that matches what GStreamer fakesrc will create
-    std::vector< int8_t > testData;
-    testData.resize( packetSize );
-    // Create some test data. Sequentially increasing values.
-    std::iota(testData.begin(), testData.end(), 0);
+    const auto testData = createSequentialValues< int8_t >( packetSize );
 
     const auto packets = collector_sink.call< std::vector< Pothos::Packet > >( "getPackets" );
     std::cout << "packets.size() = " << packets.size() << std::endl;
