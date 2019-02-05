@@ -65,27 +65,27 @@ namespace GstTypes
 
     /* Helper class to capture output arguments into std::unique_ptr */
     template< typename T, typename D >
-    class UniquePtrRef final {
-        std::unique_ptr< T, D > *m_ptr;
-        T *m_ref{ nullptr };
+    class UniqueOutArg final {
+        std::unique_ptr< T, D > *m_uniquePtr;
+        T *m_ptr{ nullptr };
 
     public:
         using element_type = T;
 
-        UniquePtrRef() = delete;
-        UniquePtrRef& operator=(const UniquePtrRef&) = delete;
-        UniquePtrRef(const UniquePtrRef&) = delete;
-        UniquePtrRef(UniquePtrRef&&) = default;
-        UniquePtrRef& operator=(UniquePtrRef&&) = default;
+        UniqueOutArg() = delete;
+        UniqueOutArg& operator=(const UniqueOutArg&) = delete;
+        UniqueOutArg(const UniqueOutArg&) = delete;
+        UniqueOutArg(UniqueOutArg&&) = default;
+        UniqueOutArg& operator=(UniqueOutArg&&) = default;
 
-        explicit UniquePtrRef(std::unique_ptr< T, D > &ptr) noexcept :
-            m_ptr( std::addressof( ptr ) )
+        explicit UniqueOutArg(std::unique_ptr< T, D > &uniquePtr) noexcept :
+            m_uniquePtr( std::addressof( uniquePtr ) )
         {
         }
 
-        ~UniquePtrRef()
+        ~UniqueOutArg()
         {
-            m_ptr->reset( m_ref );
+            m_uniquePtr->reset( m_ptr );
         }
 
         operator element_type**() noexcept
@@ -95,14 +95,14 @@ namespace GstTypes
 
         element_type** ref() noexcept
         {
-            return &m_ref;
+            return &m_ptr;
         }
     };  // class UniquePtrRef< T, D >
 
     template< typename T, typename D >
-    inline UniquePtrRef< T, D > uniquePtrRef(std::unique_ptr< T, D > &ptr) noexcept
+    inline UniqueOutArg< T, D > uniqueOutArg(std::unique_ptr< T, D > &uniquePtr) noexcept
     {
-        return UniquePtrRef< T, D >( ptr );
+        return UniqueOutArg< T, D >( uniquePtr );
     }
 
     Poco::Optional< std::string > gquarkToString(GQuark quark);
@@ -118,9 +118,9 @@ namespace GstTypes
      * @param gstStructure GstStructure to be converted to Pothos::ObjectKwargs.
      * @return Pothos::ObjectKwargs {"structure_name":{{"field1_name":"field1_value"},{"field2_name":"field2_value"}}
      */
-    Pothos::ObjectKwargs structureToObjectKwargs(const GstStructure *gstStructure);
+    Pothos::ObjectKwargs gstStructureToObjectKwargs(const GstStructure *gstStructure);
 
-    GstBuffer* makeSharedGStreamerBuffer(const void *data, size_t size, std::shared_ptr< void > container);
+    GstBuffer* makeSharedGstBuffer(const void *data, size_t size, std::shared_ptr< void > container);
 
     class GstCapsCache final
     {
@@ -159,7 +159,7 @@ namespace GstTypes
      */
     Pothos::Packet makePacketFromGstBuffer(GstBuffer *gstBuffer);
 
-    Pothos::ObjectKwargs segmentToObjectKwargs(const GstSegment *segment);
+    Pothos::ObjectKwargs gstSegmentToObjectKwargs(const GstSegment *segment);
 
     Pothos::ObjectKwargs gvalueToObjectKwargs(const GValue* value);
 
@@ -167,7 +167,7 @@ namespace GstTypes
 
     Pothos::Object gvalueToObject(const GValue *gvalue);
 
-    Pothos::ObjectKwargs tagListToObjectKwargs(const GstTagList *tags);
+    Pothos::ObjectKwargs gstTagListToObjectKwargs(const GstTagList *tags);
 
     struct GVal final
     {

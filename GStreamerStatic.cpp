@@ -29,7 +29,7 @@ namespace {
             // Run GStreamer registry update in this thread
             gst_registry_fork_set_enabled( FALSE );
 
-            if ( gst_init_check( nullptr, nullptr, GstTypes::uniquePtrRef( initError ) ) == FALSE )
+            if ( gst_init_check( nullptr, nullptr, GstTypes::uniqueOutArg( initError ) ) == FALSE )
             {
                poco_error( GstTypes::logger(), "GStreamerStatic::GStreamerStatic(): gst_init_check error: " + GstTypes::gerrorToString( initError.get() ) );
             }

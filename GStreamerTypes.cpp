@@ -114,7 +114,7 @@ namespace GstTypes
         };  // struct GstStructureForeach
     }  // namespace
 
-    Pothos::ObjectKwargs structureToObjectKwargs(const GstStructure *gstStructure)
+    Pothos::ObjectKwargs gstStructureToObjectKwargs(const GstStructure *gstStructure)
     {
         if (gstStructure == nullptr)
         {
@@ -142,7 +142,7 @@ namespace GstTypes
         delete container;
     }
 
-    GstBuffer* makeSharedGStreamerBuffer(const void *data, size_t size, std::shared_ptr< void > container)
+    GstBuffer* makeSharedGstBuffer(const void *data, size_t size, std::shared_ptr< void > container)
     {
         // Make copy of container
         auto userData = static_cast< gpointer >( new std::shared_ptr< void >( std::move( container ) ) );
@@ -160,14 +160,14 @@ namespace GstTypes
 
     GstBuffer* makeGstBufferFromPacket(const Pothos::Packet& packet)
     {
-        const std::string funcName( "GstTypes::createGstBufferFromPacket()" );
+        const std::string funcName( "GstTypes::makeGstBufferFromPacket()" );
         //poco_information( GstTypes::logger(), funcName + " packet.payload.length = " + std::to_string( packet.payload.length ) );
 
         // Make a copy of the Pothos buffer for GStreamer buffer wrapping.
         // When GStreamer buffer is freed, it will free the copy of Pothos::BufferChunk.
         auto bufferChunk = std::make_shared< Pothos::BufferChunk >(packet.payload);
 
-        auto gstBuffer = makeSharedGStreamerBuffer(bufferChunk->as< void* >(), bufferChunk->length, bufferChunk);
+        auto gstBuffer = makeSharedGstBuffer(bufferChunk->as< void* >(), bufferChunk->length, bufferChunk);
 
         if ( gstBuffer == nullptr )
         {
@@ -214,19 +214,19 @@ namespace GstTypes
 
     namespace
     {
-        class GStreamerBufferWrapper final
+        class GstBufferMap final
         {
             GstBuffer *m_buffer;
             GstMapInfo m_mapInfo;
 
         public:
-            GStreamerBufferWrapper() = delete;
-            GStreamerBufferWrapper(const GStreamerBufferWrapper&) = delete;             // No copy constructor
-            GStreamerBufferWrapper& operator= (const GStreamerBufferWrapper&) = delete; // No assignment operator
-            GStreamerBufferWrapper(GStreamerBufferWrapper&&) = delete;             // No move constructor
-            GStreamerBufferWrapper& operator= (GStreamerBufferWrapper&&) = delete; // No move operator
+            GstBufferMap() = delete;
+            GstBufferMap(const GstBufferMap&) = delete;             // No copy constructor
+            GstBufferMap& operator= (const GstBufferMap&) = delete; // No assignment operator
+            GstBufferMap(GstBufferMap&&) = delete;             // No move constructor
+            GstBufferMap& operator= (GstBufferMap&&) = delete; // No move operator
 
-            explicit GStreamerBufferWrapper(GstBuffer *gstBuffer, GstMapFlags flags) :
+            explicit GstBufferMap(GstBuffer *gstBuffer, GstMapFlags flags) :
                 m_buffer(gst_buffer_ref(gstBuffer)),
                 m_mapInfo(GST_MAP_INFO_INIT)
             {
@@ -234,11 +234,11 @@ namespace GstTypes
                 {
                     gst_buffer_unref(m_buffer);
                     // Blow up
-                    throw Pothos::OutOfMemoryException("GStreamerBufferWrapper::GStreamerBufferWrapper()", "gst_buffer_map failed");
+                    throw Pothos::OutOfMemoryException("GstBufferMap::GstBufferMap()", "gst_buffer_map failed");
                 }
             }
 
-            ~GStreamerBufferWrapper()
+            ~GstBufferMap()
             {
                 gst_buffer_unmap(m_buffer, &m_mapInfo);
                 gst_buffer_unref(m_buffer);
@@ -246,17 +246,17 @@ namespace GstTypes
 
             static Pothos::SharedBuffer makeSharedReadBuffer(GstBuffer *gstBuffer)
             {
-                auto gstreamerBufferWrapper = std::make_shared< GStreamerBufferWrapper >( gstBuffer, GST_MAP_READ );
+                auto gstBufferMap = std::make_shared< GstBufferMap >( gstBuffer, GST_MAP_READ );
 
                 return
                     Pothos::SharedBuffer(
-                        reinterpret_cast< size_t >( gstreamerBufferWrapper->m_mapInfo.data ),
-                        gstreamerBufferWrapper->m_mapInfo.size,
-                        gstreamerBufferWrapper
+                        reinterpret_cast< size_t >( gstBufferMap->m_mapInfo.data ),
+                        gstBufferMap->m_mapInfo.size,
+                        gstBufferMap
                     );
             }
 
-        };  // class GStreamerBufferWrapper
+        };  // class GstBufferMap
     }  // namespace
 
 //-----------------------------------------------------------------------------
@@ -362,10 +362,10 @@ namespace GstTypes
         auto packet = GstTypes::makePacketFromGstBuffer( gst_sample_get_buffer( gstSample ) );
 
         packet.metadata[ GstTypes::PACKET_META_INFO    ] =
-            Pothos::Object( structureToObjectKwargs( gst_sample_get_info( gstSample ) ) );
+            Pothos::Object( gstStructureToObjectKwargs( gst_sample_get_info( gstSample ) ) );
 
         packet.metadata[ GstTypes::PACKET_META_SEGMENT ] =
-            Pothos::Object( segmentToObjectKwargs( gst_sample_get_segment( gstSample ) ) );
+            Pothos::Object( gstSegmentToObjectKwargs( gst_sample_get_segment( gstSample ) ) );
 
         packet.metadata[ GstTypes::PACKET_META_CAPS    ] =
             Pothos::Object( GstCapsCache::update( gst_sample_get_caps( gstSample ), gstCapsCach) );
@@ -377,7 +377,7 @@ namespace GstTypes
     {
         Pothos::Packet packet;
 
-        packet.payload = Pothos::BufferChunk( GStreamerBufferWrapper::makeSharedReadBuffer( gstBuffer ) );
+        packet.payload = Pothos::BufferChunk( GstBufferMap::makeSharedReadBuffer( gstBuffer ) );
 
         if ( GST_BUFFER_TIMESTAMP_IS_VALID( gstBuffer ) )
         {
@@ -443,7 +443,7 @@ namespace GstTypes
 
 //-----------------------------------------------------------------------------
 
-    Pothos::ObjectKwargs segmentToObjectKwargs(const GstSegment *segment)
+    Pothos::ObjectKwargs gstSegmentToObjectKwargs(const GstSegment *segment)
     {
         Pothos::ObjectKwargs obj;
 
@@ -509,19 +509,19 @@ namespace GstTypes
         {
             auto event = static_cast< GstEvent * >( boxedData );
             auto structure = gst_event_get_structure( event );
-            return Pothos::Object( structureToObjectKwargs( structure ) );
+            return Pothos::Object( gstStructureToObjectKwargs( structure ) );
         }
 
         if ( type == GST_TYPE_TAG_LIST )
         {
             auto tagList = static_cast< GstTagList * >( boxedData );
-            return Pothos::Object( tagListToObjectKwargs( tagList ) );
+            return Pothos::Object( gstTagListToObjectKwargs( tagList ) );
         }
 
         if ( type == GST_TYPE_STRUCTURE )
         {
             auto structure = static_cast< const GstStructure* >( boxedData );
-            return Pothos::Object( structureToObjectKwargs( structure ) );
+            return Pothos::Object( gstStructureToObjectKwargs( structure ) );
         }
 
         if ( type == G_TYPE_ERROR )
@@ -720,7 +720,7 @@ namespace GstTypes
         }
     }
 
-    Pothos::ObjectKwargs tagListToObjectKwargs(const GstTagList *tags)
+    Pothos::ObjectKwargs gstTagListToObjectKwargs(const GstTagList *tags)
     {
         Pothos::ObjectKwargs objectMap;
         gst_tag_list_foreach( tags, convert_tag, &objectMap );

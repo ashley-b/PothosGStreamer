@@ -28,7 +28,7 @@ std::vector< T > createSequentialValues(typename std::vector< T >::size_type siz
     return v;
 }
 
-POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gvalue_to_object)
+POTHOS_TEST_BLOCK(testPath, test_gstreamer_types_gvalue_to_object)
 {
     {
         const std::string testString( "test 1, 2" );
@@ -155,7 +155,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gvalue_to_object)
     }
 }
 
-POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_if_key_extract_or_default)
+POTHOS_TEST_BLOCK(testPath, test_gstreamer_types_if_key_extract_or_default)
 {
     Pothos::ObjectKwargs args;
 
@@ -199,7 +199,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_if_key_extract_or_default)
     }
 }
 
-POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gchar_ptr)
+POTHOS_TEST_BLOCK(testPath, test_gstreamer_types_gchar_ptr)
 {
     //(void)g_strdup( "leak" );
     constexpr size_t stringLength = 255;
@@ -220,12 +220,12 @@ static void outputArgumentGChar(const gchar *str, gchar **outStr)
     *outStr = g_strdup( str );
 }
 
-POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_unique_ptr_ref)
+POTHOS_TEST_BLOCK(testPath, test_gstreamer_types_unique_out_arg)
 {
     GstTypes::GCharPtr gcharPtr;
     static constexpr char testString[]{ "Caution!! test string" };
 
-    outputArgumentGChar( testString, GstTypes::uniquePtrRef( gcharPtr ) );
+    outputArgumentGChar( testString, GstTypes::uniqueOutArg( gcharPtr ) );
 
     POTHOS_TEST_EQUAL_GCHAR( testString, gcharPtr.get() );
 }
@@ -240,11 +240,11 @@ static void outputArgumentError(GError **outError)
     *outError = newTestGError();
 }
 
-POTHOS_TEST_BLOCK(testPath, test_gstreamer_gst_types_gerror_ptr)
+POTHOS_TEST_BLOCK(testPath, test_gstreamer_types_gerror_ptr)
 {
     GstTypes::GErrorPtr refError( newTestGError() );
     GstTypes::GErrorPtr gerrorPtr;
-    outputArgumentError( GstTypes::uniquePtrRef( gerrorPtr ) );
+    outputArgumentError( GstTypes::uniqueOutArg( gerrorPtr ) );
 
     POTHOS_TEST_EQUAL(refError->code, gerrorPtr->code);
     POTHOS_TEST_EQUAL(refError->domain, gerrorPtr->domain);

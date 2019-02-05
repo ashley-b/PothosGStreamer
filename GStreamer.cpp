@@ -213,7 +213,7 @@ void GStreamer::createPipeline()
 
     GstTypes::GErrorPtr errorPtr;
     GstTypes::GstElementPtr element(
-        gst_parse_launch_full( m_pipeline_string.c_str(), nullptr, GST_PARSE_FLAG_FATAL_ERRORS, GstTypes::uniquePtrRef(errorPtr) )
+        gst_parse_launch_full( m_pipeline_string.c_str(), nullptr, GST_PARSE_FLAG_FATAL_ERRORS, GstTypes::uniqueOutArg(errorPtr) )
     );
 
     const std::string errorMessage( GstTypes::gerrorToString( errorPtr.get() ) );
@@ -272,7 +272,7 @@ void GStreamer::destroyPipeline()
     if ( m_bus )
     {
         // Process any GStreamer messages left on the bus so we can print any errors.
-        processGStreamerMessagesTimeout( 100 * GST_MSECOND );
+        processGstMessagesTimeout( 100 * GST_MSECOND );
 
         // Free Bus
         m_bus.reset();
@@ -300,17 +300,17 @@ Pothos::ObjectKwargs GStreamer::gstMessageInfoWarnError( GstMessage *message )
         {
             case GST_MESSAGE_ERROR:
             {
-                gst_message_parse_error( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+                gst_message_parse_error( message, GstTypes::uniqueOutArg( errorPtr ), GstTypes::uniqueOutArg( dbgInfoPtr ) );
                 return { "ERROR", Poco::Message::PRIO_ERROR };
             }
             case GST_MESSAGE_WARNING:
             {
-                gst_message_parse_warning( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+                gst_message_parse_warning( message, GstTypes::uniqueOutArg( errorPtr ), GstTypes::uniqueOutArg( dbgInfoPtr ) );
                 return { "WARNING", Poco::Message::PRIO_WARNING };
             }
             case GST_MESSAGE_INFO:
             {
-                gst_message_parse_info( message, GstTypes::uniquePtrRef( errorPtr ), GstTypes::uniquePtrRef( dbgInfoPtr ) );
+                gst_message_parse_info( message, GstTypes::uniqueOutArg( errorPtr ), GstTypes::uniqueOutArg( dbgInfoPtr ) );
                 return { "INFO", Poco::Message::PRIO_INFORMATION };
             }
             default:
@@ -481,8 +481,8 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
         case GST_MESSAGE_TAG:
         {
             std::unique_ptr < GstTagList, GstTypes::Deleter< GstTagList, gst_tag_list_unref > > tags;
-            gst_message_parse_tag( gstMessage, GstTypes::uniquePtrRef(tags) );
-            return GstTypes::tagListToObjectKwargs( tags.get() );
+            gst_message_parse_tag( gstMessage, GstTypes::uniqueOutArg(tags) );
+            return GstTypes::gstTagListToObjectKwargs( tags.get() );
         }
 
         case GST_MESSAGE_PROPERTY_NOTIFY:
@@ -575,7 +575,7 @@ Pothos::Object GStreamer::gstMessageToObject(GstMessage *gstMessage)
         Pothos::Object structureObject;
         if ( structure != nullptr )
         {
-            structureObject = Pothos::Object::make( GstTypes::structureToObjectKwargs( structure ) );
+            structureObject = Pothos::Object::make( GstTypes::gstStructureToObjectKwargs( structure ) );
         }
 
         objectMap[ "structureObject" ] = structureObject;
@@ -588,7 +588,7 @@ Pothos::Object GStreamer::gstMessageToObject(GstMessage *gstMessage)
     return Pothos::Object( objectMap );
 }
 
-void GStreamer::processGStreamerMessagesTimeout(GstClockTime timeout)
+void GStreamer::processGstMessagesTimeout(GstClockTime timeout)
 {
     while (true)
     {
@@ -811,7 +811,7 @@ void GStreamer::activate()
     catch (...)
     {
         // Process any GStreamer messages left on the bus so we can print errors.
-        processGStreamerMessagesTimeout( 100 * GST_MSECOND );
+        processGstMessagesTimeout( 100 * GST_MSECOND );
 
         throw;
     }
@@ -849,7 +849,7 @@ void GStreamer::work()
     const auto gstMessageTimeout = (this->m_blockingNodes == 0) ? (nodeTimeoutNs * GST_NSECOND) : 0;
 
     // Handle GStreamer messages and forwarding into Pothos via signals
-    processGStreamerMessagesTimeout( gstMessageTimeout );
+    processGstMessagesTimeout( gstMessageTimeout );
 
     // Send data to and from GStreamer into Pothos
     for (auto &subWorker : m_gstreamerSubWorkers)

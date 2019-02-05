@@ -49,7 +49,7 @@ namespace
             return reinterpret_cast< GstAppSink* >( element.release() );
         }
 
-        static Pothos::DType gstreamerTypeToDtype(const GstAudioInfo *gstAudioInfo)
+        static Pothos::DType gstAudioInfoToDtype(const GstAudioInfo *gstAudioInfo)
         {
             if ( GST_AUDIO_INFO_WIDTH( gstAudioInfo ) != GST_AUDIO_INFO_DEPTH( gstAudioInfo ) )
             {
@@ -103,7 +103,7 @@ namespace
                     poco_warning(GstTypes::logger(), "We do not support non INTERLEAVED data");
                 }
                 //poco_information(GstTypes::logger(), std::string("gstAudioInfo.finfo->name: ") + gstAudioInfo.finfo->name);
-                m_dtype = gstreamerTypeToDtype( &gstAudioInfo );
+                m_dtype = gstAudioInfoToDtype( &gstAudioInfo );
                 m_rxRateLabel = Pothos::Label("rxRate", Pothos::Object( GST_AUDIO_INFO_RATE( &gstAudioInfo ) ), 0);
             }
             else

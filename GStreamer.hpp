@@ -32,7 +32,7 @@ private:
     void workerStop(const std::string &reason);
     Pothos::ObjectKwargs gstMessageToFormattedObject(GstMessage *gstMessage);
     Pothos::Object gstMessageToObject(GstMessage *gstMessage);
-    void processGStreamerMessagesTimeout(GstClockTime timeout);
+    void processGstMessagesTimeout(GstClockTime timeout);
     void setState(const std::string &state);
     void findSourcesAndSinks(GstBin *bin);
     void createPipeline();

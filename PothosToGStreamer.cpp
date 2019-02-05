@@ -7,7 +7,7 @@
 #include <gst/app/gstappsrc.h>
 #include <string>
 
-static std::string GstFlowToString(GstFlowReturn gstFlowReturn)
+static std::string gstFlowToString(GstFlowReturn gstFlowReturn)
 {
     return GstTypes::gquarkToString( gst_flow_to_quark( gstFlowReturn ) ).value("unknown");
 }
@@ -104,7 +104,7 @@ namespace
             const auto flowReturn = gst_app_src_end_of_stream( gstAppSource() );
             if ( flowReturn != GST_FLOW_OK )
             {
-                const auto flowStr = GstFlowToString( flowReturn );
+                const auto flowStr = gstFlowToString( flowReturn );
                 poco_warning( GstTypes::logger(), "PothosToGStreamer::sendEos() flow_return = " + std::to_string( flowReturn ) + " (" + flowStr + ")" );
                 return false;
             }
@@ -218,7 +218,7 @@ namespace
             // If we have a string for GST_TAG_APPLICATION_DATA lets convert it and send it
             if ( !m_tag_app_data->empty() )
             {
-                auto gstBuffer = GstTypes::makeSharedGStreamerBuffer(m_tag_app_data->data(), m_tag_app_data->length(), m_tag_app_data);
+                auto gstBuffer = GstTypes::makeSharedGstBuffer(m_tag_app_data->data(), m_tag_app_data->length(), m_tag_app_data);
 
                 GstCaps *caps = gst_caps_from_string( "text/plain" );
                 GstSegment *segment = gst_segment_new();
@@ -298,7 +298,7 @@ namespace
             const auto flowReturn = gst_app_src_push_buffer( m_runState->gstAppSource(), gstBuffer );
             if ( flowReturn != GST_FLOW_OK )
             {
-                const auto flowStr = GstFlowToString( flowReturn );
+                const auto flowStr = gstFlowToString( flowReturn );
                 poco_warning( GstTypes::logger(), funcName + " flow_return = " + std::to_string( flowReturn ) + " (" + flowStr + ")" );
             }
 
