@@ -480,7 +480,7 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
 
         case GST_MESSAGE_TAG:
         {
-            std::unique_ptr < GstTagList, GstTypes::Deleter< GstTagList, gst_tag_list_unref > > tags;
+            std::unique_ptr < GstTagList, GstTypes::detail::Deleter< GstTagList, gst_tag_list_unref > > tags;
             gst_message_parse_tag( gstMessage, GstTypes::uniqueOutArg(tags) );
             return GstTypes::gstTagListToObjectKwargs( tags.get() );
         }
@@ -592,7 +592,7 @@ void GStreamer::processGstMessagesTimeout(GstClockTime timeout)
 {
     while (true)
     {
-        using GstMessagePtr = std::unique_ptr < GstMessage, GstTypes::Deleter< GstMessage, gst_message_unref > >;
+        using GstMessagePtr = std::unique_ptr < GstMessage, GstTypes::detail::Deleter< GstMessage, gst_message_unref > >;
         GstMessagePtr gstMessage(
             gst_bus_timed_pop(
                 m_bus.get(),
@@ -680,7 +680,7 @@ inline Pothos::Object GstClockTimeToObject(const GstClockTime gstClockTime)
 
 Pothos::Object GStreamer::getPipelineLatency() const
 {
-    std::unique_ptr < GstQuery, GstTypes::Deleter< GstQuery, gst_query_unref > > query( gst_query_new_latency() );
+    std::unique_ptr < GstQuery, GstTypes::detail::Deleter< GstQuery, gst_query_unref > > query( gst_query_new_latency() );
     const auto res = gst_element_query( GST_ELEMENT( m_pipeline.get() ), query.get() );
     if (res == FALSE)
     {

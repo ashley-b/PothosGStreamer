@@ -45,23 +45,29 @@ namespace GstTypes
         return static_cast< typename std::underlying_type< T >::type >( e );
     }
 
-    template< typename T, void(*Fn)(T*) >
-    struct Deleter
-    {
-        inline void operator() (void *p) const noexcept
+    namespace detail {
+        template< typename T, void(*Fn)(T*) >
+        struct Deleter
         {
-            Fn(static_cast<T*>(p));
-        }
-    };
+            void operator() (T *ptr) const noexcept
+            {
+                Fn( ptr );
+            }
+        };
+
+        void gstBufferUnref(GstBuffer* gstBuffer) noexcept;
+    }  // namespace detail
+
 
     using GPointerType = std::remove_pointer< gpointer >::type;
-    using GstObjectUnrefFunc = Deleter< GPointerType, gst_object_unref >;
+    using GstObjectUnrefFunc = detail::Deleter< GPointerType, gst_object_unref >;
 
-    using GstIteratorPtr = std::unique_ptr< GstIterator, Deleter< GstIterator, gst_iterator_free > >;
-    using GCharPtr       = std::unique_ptr< gchar, Deleter< GPointerType, g_free > >;
-    using GErrorPtr      = std::unique_ptr< GError, Deleter< GError, g_error_free > >;
-    using GstCapsPtr     = std::unique_ptr< GstCaps, Deleter< GstCaps, gst_caps_unref > >;
-    using GstElementPtr  = std::unique_ptr< GstElement, GstObjectUnrefFunc >;
+    using GstIteratorPtr = std::unique_ptr< GstIterator, detail::Deleter< GstIterator, gst_iterator_free > >;
+    using GCharPtr       = std::unique_ptr< gchar      , detail::Deleter< GPointerType, g_free > >;
+    using GErrorPtr      = std::unique_ptr< GError     , detail::Deleter< GError, g_error_free > >;
+    using GstCapsPtr     = std::unique_ptr< GstCaps    , detail::Deleter< GstCaps, gst_caps_unref > >;
+    using GstBufferPtr   = std::unique_ptr< GstBuffer  , detail::Deleter< GstBuffer, detail::gstBufferUnref > >;
+    using GstElementPtr  = std::unique_ptr< GstElement , GstObjectUnrefFunc >;
 
     /* Helper class to capture output arguments into std::unique_ptr */
     template< typename T, typename D >
@@ -120,8 +126,6 @@ namespace GstTypes
      */
     Pothos::ObjectKwargs gstStructureToObjectKwargs(const GstStructure *gstStructure);
 
-    GstBuffer* makeSharedGstBuffer(const void *data, size_t size, std::shared_ptr< void > container);
-
     class GstCapsCache final
     {
         class Impl;
@@ -145,12 +149,14 @@ namespace GstTypes
 
     Pothos::Packet makePacketFromGstSample(GstSample* gstSample, GstCapsCache* gstCapsCach);
 
+    GstBufferPtr makeSharedGstBuffer(const void *data, size_t size, std::shared_ptr< void > container);
+
     /**
      * @brief Create GstBuffer from Pothos::Packet, using shared memory
      * @param packet Pothos::Packet containing all data needed to make a GStreamer Buffer
      * @return GStreamer buffer filled out with data and meta data from packet
      */
-    GstBuffer* makeGstBufferFromPacket(const Pothos::Packet& packet);
+    GstBufferPtr makeGstBufferFromPacket(const Pothos::Packet& packet);
 
     /**
      * @brief Create Pothos::Packet from GstBuffer, using shared memory

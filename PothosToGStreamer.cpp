@@ -225,7 +225,7 @@ namespace
                 GstStructure *info = gst_structure_new_empty( GST_TAG_APPLICATION_DATA );
 
                 GstSample *sample = gst_sample_new(
-                    gstBuffer,
+                    gstBuffer.release(),
                     caps,
                     segment,
                     info
@@ -265,7 +265,7 @@ namespace
             auto gstBuffer = GstTypes::makeGstBufferFromPacket( packet );
 
             // If GstBuffer could not be allocated, bail
-            if ( gstBuffer == nullptr )
+            if ( !gstBuffer )
             {
                 return false;
             }
@@ -295,7 +295,7 @@ namespace
                 }
             }
 
-            const auto flowReturn = gst_app_src_push_buffer( m_runState->gstAppSource(), gstBuffer );
+            const auto flowReturn = gst_app_src_push_buffer( m_runState->gstAppSource(), gstBuffer.release() );
             if ( flowReturn != GST_FLOW_OK )
             {
                 const auto flowStr = gstFlowToString( flowReturn );

@@ -47,6 +47,17 @@ namespace GstTypes
         return _logger;
     }
 
+    namespace detail {
+
+        // Wraper around gst_buffer_unref as its static inline and will
+        // cause linker error if we try and link directly to it.
+        void gstBufferUnref(GstBuffer* gstBuffer) noexcept
+        {
+            gst_buffer_unref( gstBuffer );
+        }
+
+    }  // namespace detail
+
     std::string boolToString(bool x)
     {
         return (x) ? "true" : "false";
@@ -142,23 +153,26 @@ namespace GstTypes
         delete container;
     }
 
-    GstBuffer* makeSharedGstBuffer(const void *data, size_t size, std::shared_ptr< void > container)
+    GstBufferPtr makeSharedGstBuffer(const void *data, size_t size, std::shared_ptr< void > container)
     {
         // Make copy of container
         auto userData = static_cast< gpointer >( new std::shared_ptr< void >( std::move( container ) ) );
         // Its ok to cast away the const as we create this buffer readonly
-        return gst_buffer_new_wrapped_full(
-            GST_MEMORY_FLAG_READONLY,        // GstMemoryFlags flags
-            const_cast< gpointer >( data ),  // gpointer data
-            size,                            // gsize maxsize
-            0,                               // gsize offset
-            size,                            // gsize size
-            userData,                        // gpointer user_data
-            &gDestroyNotifySharedVoid        // GDestroyNotify notify
-        );
+        return
+            GstBufferPtr(
+                gst_buffer_new_wrapped_full(
+                    GST_MEMORY_FLAG_READONLY,        // GstMemoryFlags flags
+                    const_cast< gpointer >( data ),  // gpointer data
+                    size,                            // gsize maxsize
+                    0,                               // gsize offset
+                    size,                            // gsize size
+                    userData,                        // gpointer user_data
+                    &gDestroyNotifySharedVoid        // GDestroyNotify notify
+                )
+            );
     }
 
-    GstBuffer* makeGstBufferFromPacket(const Pothos::Packet& packet)
+    GstBufferPtr makeGstBufferFromPacket(const Pothos::Packet& packet)
     {
         const std::string funcName( "GstTypes::makeGstBufferFromPacket()" );
         //poco_information( GstTypes::logger(), funcName + " packet.payload.length = " + std::to_string( packet.payload.length ) );
@@ -167,21 +181,21 @@ namespace GstTypes
         // When GStreamer buffer is freed, it will free the copy of Pothos::BufferChunk.
         auto bufferChunk = std::make_shared< Pothos::BufferChunk >(packet.payload);
 
-        auto gstBuffer = makeSharedGstBuffer(bufferChunk->as< void* >(), bufferChunk->length, bufferChunk);
+        auto gstBuffer = makeSharedGstBuffer( bufferChunk->as< void* >(), bufferChunk->length, bufferChunk );
 
-        if ( gstBuffer == nullptr )
+        if ( !gstBuffer )
         {
             // Could not allocate buffer.... bail
             poco_error( GstTypes::logger(), funcName + " Could not alloc buffer of size = " + std::to_string( packet.payload.length ) );
-            return nullptr;
+            return {};
         }
 
-        ifKeyExtract( packet.metadata, PACKET_META_TIMESTAMP , GST_BUFFER_TIMESTAMP ( gstBuffer ) );
-        ifKeyExtract( packet.metadata, PACKET_META_PTS       , GST_BUFFER_PTS       ( gstBuffer ) );
-        ifKeyExtract( packet.metadata, PACKET_META_DTS       , GST_BUFFER_DTS       ( gstBuffer ) );
-        ifKeyExtract( packet.metadata, PACKET_META_DURATION  , GST_BUFFER_DURATION  ( gstBuffer ) );
-        ifKeyExtract( packet.metadata, PACKET_META_OFFSET    , GST_BUFFER_OFFSET    ( gstBuffer ) );
-        ifKeyExtract( packet.metadata, PACKET_META_OFFSET_END, GST_BUFFER_OFFSET_END( gstBuffer ) );
+        ifKeyExtract( packet.metadata, PACKET_META_TIMESTAMP , GST_BUFFER_TIMESTAMP ( gstBuffer.get() ) );
+        ifKeyExtract( packet.metadata, PACKET_META_PTS       , GST_BUFFER_PTS       ( gstBuffer.get() ) );
+        ifKeyExtract( packet.metadata, PACKET_META_DTS       , GST_BUFFER_DTS       ( gstBuffer.get() ) );
+        ifKeyExtract( packet.metadata, PACKET_META_DURATION  , GST_BUFFER_DURATION  ( gstBuffer.get() ) );
+        ifKeyExtract( packet.metadata, PACKET_META_OFFSET    , GST_BUFFER_OFFSET    ( gstBuffer.get() ) );
+        ifKeyExtract( packet.metadata, PACKET_META_OFFSET_END, GST_BUFFER_OFFSET_END( gstBuffer.get() ) );
 
         // Try to convert buffer flags back into GStreamer buffer flags
         const auto meta_flags_args_result = ifKeyExtract< Pothos::ObjectKwargs >( packet.metadata, PACKET_META_FLAGS );
@@ -204,7 +218,7 @@ namespace GstTypes
                 const auto result = ifKeyExtract< bool >( flags_args, flag.first );
                 if ( result.isSpecified() )
                 {
-                    ( result.value() ) ? GST_BUFFER_FLAG_SET(gstBuffer, flag.second) : GST_BUFFER_FLAG_UNSET(gstBuffer, flag.second);
+                    ( result.value() ) ? GST_BUFFER_FLAG_SET(gstBuffer.get(), flag.second) : GST_BUFFER_FLAG_UNSET(gstBuffer.get(), flag.second);
                 }
             }
         }

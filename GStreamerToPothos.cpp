@@ -271,7 +271,7 @@ namespace
         {
             Pothos::Packet packet;
 
-            std::unique_ptr< GstSample, GstTypes::Deleter< GstSample, gst_sample_unref > > gstSample(
+            std::unique_ptr< GstSample, GstTypes::detail::Deleter< GstSample, gst_sample_unref > > gstSample(
                 m_runState->tryPullSample( maxTimeoutNs * GST_NSECOND )
             );
 
