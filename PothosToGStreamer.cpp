@@ -158,7 +158,7 @@ namespace
         PothosToGStreamerImpl& operator= (const PothosToGStreamerImpl&) = delete;  // No assignment operator
 
         PothosToGStreamerImpl(GStreamer* gstreamerBlock, GstAppSrc* gstAppSource) :
-            GStreamerSubWorker( gstreamerBlock, GstTypes::gcharToString( GstTypes::GCharPtr( gst_element_get_name( gstAppSource ) ).get() ) ),
+            GStreamerSubWorker( gstreamerBlock, GstTypes::gcharToString( GstTypes::GCharPtr( gst_element_get_name( gstAppSource ) ).get() ).value() ),
             m_pothosInputPort( gstreamerBlock->setupInput( name() ) ), // Allocate Pothos input port for GStreamer
             m_tag_app_data( std::make_shared< std::string >() ),
             m_runState()

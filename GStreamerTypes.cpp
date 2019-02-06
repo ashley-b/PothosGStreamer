@@ -77,19 +77,23 @@ namespace GstTypes
     {
         if ( gError == nullptr )
         {
-            return std::string();
+            return std::string("GError is null");
         }
         if ( gError->message == nullptr )
         {
-            return std::string();
+            return std::string("GError->message is null");
         }
 
         return std::string( gError->message );
     }
 
-    std::string gcharToString(const gchar *gstr)
+    Poco::Optional< std::string > gcharToString(const gchar *gstr)
     {
-        return (gstr != nullptr) ? std::string( gstr ) : std::string();
+        if ( gstr == nullptr )
+        {
+            return { };
+        }
+        return std::string( gstr );
     }
 
     Pothos::Object gcharToObject(const gchar *gstr)
@@ -483,14 +487,14 @@ namespace GstTypes
         Pothos::ObjectKwargs args;
         const auto type = G_VALUE_TYPE( value );
         args[ "type"                  ] = Pothos::Object( type );
-        args[ "type_name"             ] = Pothos::Object( gcharToString( g_type_name( type ) ) );
+        args[ "type_name"             ] = gcharToObject( g_type_name( type ) );
 
         const auto type_fundamental = G_TYPE_FUNDAMENTAL( type );
         args[ "type_fundamental"      ] = Pothos::Object( type_fundamental );
-        args[ "type_fundamental_name" ] = Pothos::Object( gcharToString( g_type_name( type_fundamental ) ) );
+        args[ "type_fundamental_name" ] = gcharToObject( g_type_name( type_fundamental ) );
 
         args[ "abstract"              ] = Pothos::Object( boolToString( G_TYPE_IS_VALUE_ABSTRACT( type ) ) );
-        args[ "contents"              ] = Pothos::Object( gcharToString( GCharPtr( g_strdup_value_contents( value ) ).get() ) );
+        args[ "contents"              ] = gcharToObject( GCharPtr( g_strdup_value_contents( value ) ).get() );
         return args;
     }
 

@@ -115,7 +115,7 @@ namespace GstTypes
 
     std::string gerrorToString(const GError *gError);
 
-    std::string gcharToString(const gchar *gstr);
+    Poco::Optional< std::string > gcharToString(const gchar *gstr);
 
     Pothos::Object gcharToObject(const gchar *gstr);
 
@@ -208,7 +208,7 @@ namespace GstTypes
 
         std::string toString() const
         {
-            return gcharToString( GCharPtr( g_strdup_value_contents( &value ) ).get() );
+            return gcharToString( GCharPtr( g_strdup_value_contents( &value ) ).get() ).value("");
         }
 
         Pothos::ObjectKwargs toDebugObjectKwargs() const

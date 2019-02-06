@@ -67,6 +67,6 @@ namespace GstStatic
 
     std::string getVersion()
     {
-        return GstTypes::gcharToString( GstTypes::GCharPtr( gst_version_string() ).get() );
+        return GstTypes::gcharToString( GstTypes::GCharPtr( gst_version_string() ).get() ).value();
     }
 }  // namespace GstStatic

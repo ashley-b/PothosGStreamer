@@ -219,7 +219,8 @@ namespace
         if ( !m_runState ) throw Pothos::NullPointerException("Not in running state: " + this->gstreamerBlock()->getPipelineString(), std::string( (std::decay< decltype( __func__ )>::type)& __func__ ) ); \
     } while ( false )
 
-    class GStreamerToPothosImpl : public GStreamerSubWorker {
+    class GStreamerToPothosImpl : public GStreamerSubWorker
+    {
     private:
         Pothos::OutputPort *m_pothosOutputPort;
         std::unique_ptr< GStreamerToPothosRunState > m_runState;
@@ -229,7 +230,7 @@ namespace
         GStreamerToPothosImpl& operator= (const GStreamerToPothosImpl&) = delete; // No assignment operator
 
         GStreamerToPothosImpl(GStreamer* gstreamerBlock, GstAppSink* gstAppSink) :
-            GStreamerSubWorker( gstreamerBlock, GstTypes::gcharToString( GstTypes::GCharPtr( gst_element_get_name( gstAppSink ) ).get() ) ),
+            GStreamerSubWorker( gstreamerBlock, GstTypes::gcharToString( GstTypes::GCharPtr( gst_element_get_name( gstAppSink ) ).get() ).value() ),
             m_pothosOutputPort( gstreamerBlock->setupOutput( name() ) ),  // Allocate Pothos output port for our GStreamer pad
             m_runState()
         {
