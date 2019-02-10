@@ -91,7 +91,6 @@ GStreamer::GStreamer(const std::string &pipelineString) :
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelineString));
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, setState));
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipeline));
-    this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelineString));
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelineLatency));
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelinePosition));
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelineDuration));

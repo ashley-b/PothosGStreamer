@@ -186,7 +186,7 @@
                     "properties": [
                         {
                             "key": "pipelineString",
-                            "value": "\"uridecodebin uri=http://178.18.137.245:80/ ! audioconvert ! audioresample ! audio/x-raw,format=F32LE,channels=2,rate=44100 ! appsink name=out\""
+                            "value": "\"uridecodebin uri=http://178.18.137.245:80/ ! audioconvert ! audioresample ! audio/x-raw,format=F32LE,channels=2,rate=44100,layout=interleaved ! appsink name=out\""
                         },
                         {
                             "key": "state",

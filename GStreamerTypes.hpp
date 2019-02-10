@@ -14,8 +14,8 @@
 
 namespace GstTypes
 {
-    // GStreamer buffer flags
     constexpr int GST_BUFFER_FLAG_LIST_SIZE = 12;
+    //! GStreamer buffer flags
     extern const std::array< std::pair< const char * const, GstBufferFlags >, GST_BUFFER_FLAG_LIST_SIZE > GST_BUFFER_FLAG_LIST;
 
     // Packet meta data for GstBuffer
@@ -69,7 +69,7 @@ namespace GstTypes
     using GstBufferPtr   = std::unique_ptr< GstBuffer  , detail::Deleter< GstBuffer, detail::gstBufferUnref > >;
     using GstElementPtr  = std::unique_ptr< GstElement , GstObjectUnrefFunc >;
 
-    /* Helper class to capture output arguments into std::unique_ptr */
+    /** Helper class to capture output arguments into std::unique_ptr */
     template< typename T, typename D >
     class UniqueOutArg final {
         std::unique_ptr< T, D > *m_uniquePtr;
