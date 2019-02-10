@@ -368,7 +368,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_tag_sink)
     auto gstreamer = Pothos::BlockRegistry::make( "/media/gstreamer", testPipe );
     auto collector_sink = Pothos::BlockRegistry::make( "/blocks/collector_sink", "int8" );
 
-    auto slot_to_message = Pothos::BlockRegistry::make( "/blocks/slot_to_message", signalTag );
+    auto slot_to_message = Pothos::BlockRegistry::make( "/blocks/slot_to_message", SIGNAL_TAG );
     auto collector_tag_sink = Pothos::BlockRegistry::make( "/blocks/collector_sink", "int8" );
 
     // Run the topology
@@ -377,7 +377,7 @@ POTHOS_TEST_BLOCK(testPath, test_gstreamer_tag_sink)
         Pothos::Topology topology;
         topology.connect( gstreamer, "src1" , collector_sink, 0 );
 
-        topology.connect( gstreamer, signalTag , slot_to_message, signalTag );
+        topology.connect( gstreamer, SIGNAL_TAG , slot_to_message, SIGNAL_TAG );
         topology.connect( slot_to_message, 0 , collector_tag_sink, 0 );
 
         topology.commit();

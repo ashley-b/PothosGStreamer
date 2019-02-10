@@ -11,7 +11,7 @@
 
 namespace GstTypes
 {
-    const std::array< std::pair< const char * const, GstBufferFlags >, GST_BUFFER_FLAG_LIST_SIZE > gst_buffer_flag_list
+    const std::array< std::pair< const char * const, GstBufferFlags >, GST_BUFFER_FLAG_LIST_SIZE > GST_BUFFER_FLAG_LIST
     { {
         { "LIVE"       , GST_BUFFER_FLAG_LIVE        },
         { "DECODE_ONLY", GST_BUFFER_FLAG_DECODE_ONLY },
@@ -212,7 +212,7 @@ namespace GstTypes
                 poco_information( GstTypes::logger(), funcName + " We got GST_BUFFER_META_FLAGS in the metadata: " + Pothos::Object( flags_args ).toString() );
             }
 
-            for (const auto &flag : gst_buffer_flag_list)
+            for (const auto &flag : GST_BUFFER_FLAG_LIST)
             {
                 const auto flag_bit_it = flags_args.find( flag.first );
                 if ( flag_bit_it == flags_args.cend() )
@@ -448,7 +448,7 @@ namespace GstTypes
         {
             Pothos::ObjectKwargs dict_flags;
 
-            for (const auto &flag : gst_buffer_flag_list)
+            for (const auto &flag : GST_BUFFER_FLAG_LIST)
             {
                 dict_flags[ flag.first ] = Pothos::Object( static_cast< bool >( GST_BUFFER_FLAG_IS_SET( gstBuffer, flag.second ) ) );
             }

@@ -16,7 +16,7 @@ namespace GstTypes
 {
     // GStreamer buffer flags
     constexpr int GST_BUFFER_FLAG_LIST_SIZE = 12;
-    extern const std::array< std::pair< const char * const, GstBufferFlags >, GST_BUFFER_FLAG_LIST_SIZE > gst_buffer_flag_list;
+    extern const std::array< std::pair< const char * const, GstBufferFlags >, GST_BUFFER_FLAG_LIST_SIZE > GST_BUFFER_FLAG_LIST;
 
     // Packet meta data for GstBuffer
     extern const char PACKET_META_EOS[];

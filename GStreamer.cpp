@@ -56,9 +56,9 @@
 #include <vector>
 #include <utility>
 
-const char signalBusName[]{ "bus"    };
-const char signalTag    []{ "busTag" };
-const char signalEosName[]{ "eos"    };
+const char SIGNAL_BUS_NAME[]{ "bus"    };
+const char SIGNAL_TAG     []{ "busTag" };
+const char SIGNAL_EOS_NAME[]{ "eos"    };
 
 GStreamer::GStreamer(const std::string &pipelineString) :
     m_pipeline_string( pipelineString ),
@@ -84,9 +84,9 @@ GStreamer::GStreamer(const std::string &pipelineString) :
     // Iterate through pipeline and try and find AppSink(s) and AppSource(s)
     findSourcesAndSinks( GST_BIN( m_pipeline.get() ) );
 
-    this->registerSignal( signalBusName );
-    this->registerSignal( signalTag );
-    this->registerSignal( signalEosName );
+    this->registerSignal( SIGNAL_BUS_NAME );
+    this->registerSignal( SIGNAL_TAG );
+    this->registerSignal( SIGNAL_EOS_NAME );
 
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelineString));
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, setState));
@@ -617,10 +617,10 @@ void GStreamer::processGstMessagesTimeout(GstClockTime timeout)
                 switch ( GST_MESSAGE_TYPE( gstMessage.get() ) )
                 {
                     case GST_MESSAGE_EOS:
-                        this->emitSignal( signalEosName, object );
+                        this->emitSignal( SIGNAL_EOS_NAME, object );
                         break;
                     case GST_MESSAGE_TAG:
-                        this->emitSignal( signalTag, object );
+                        this->emitSignal( SIGNAL_TAG, object );
                         break;
                     // To silence the compilers
                     default:
@@ -628,7 +628,7 @@ void GStreamer::processGstMessagesTimeout(GstClockTime timeout)
                 }
 
                 // Push the GStreamer message out as a Pothos signal
-                this->emitSignal(signalBusName, object);
+                this->emitSignal(SIGNAL_BUS_NAME, object);
             }
         }
         POTHOS_EXCEPTION_CATCH (const Pothos::Exception & e)
