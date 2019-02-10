@@ -51,7 +51,10 @@
 #include <Poco/Logger.h>
 #include <Pothos/Exception.hpp>
 #include <Pothos/Framework.hpp>
+#include <Poco/String.h>
 #include <gst/gst.h>
+#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include <utility>
@@ -59,6 +62,8 @@
 const char SIGNAL_BUS_NAME[]{ "bus"    };
 const char SIGNAL_TAG     []{ "busTag" };
 const char SIGNAL_EOS_NAME[]{ "eos"    };
+
+static const auto PIPELINE_GRAPH_DETAILS = GST_DEBUG_GRAPH_SHOW_VERBOSE;
 
 GStreamer::GStreamer(const std::string &pipelineString) :
     m_pipeline_string( pipelineString ),
@@ -94,6 +99,8 @@ GStreamer::GStreamer(const std::string &pipelineString) :
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelineLatency));
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelinePosition));
     this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelineDuration));
+    this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, getPipelineGraph));
+    this->registerCall(this, POTHOS_FCN_TUPLE(GStreamer, savePipelineGraph));
 
     this->registerProbe("getPipelineLatency");
     this->registerProbe("getPipelinePosition");
@@ -317,6 +324,8 @@ Pothos::ObjectKwargs GStreamer::gstMessageInfoWarnError( GstMessage *message )
         }
     } ( );
 
+    debugPipelineToDot( this->getName() + "." + Poco::toLower( std::string( logLevel.first ) ) );
+
     const std::string prefix( std::string( "GStreamer " ) + logLevel.first + ": " );
 
     GstTypes::GCharPtr objectName( gst_object_get_name( message->src ) );
@@ -339,6 +348,15 @@ Pothos::ObjectKwargs GStreamer::gstMessageInfoWarnError( GstMessage *message )
     GstTypes::logger().log( Poco::Message( GstTypes::logger().name(), debugMessage.str(), logLevel.second ) );
 
     return objectMap;
+}
+
+/**
+ * @brief Will dump dot file of current pipeline if GST_DEBUG_DUMP_DOT_DIR environment variable is set
+ * @param fileName
+ */
+void GStreamer::debugPipelineToDot(const std::string &fileName)
+{
+    gst_debug_bin_to_dot_file_with_ts( GST_BIN( m_pipeline.get()), PIPELINE_GRAPH_DETAILS, fileName.c_str());
 }
 
 static Pothos::ObjectKwargs clockInfo(GstClock *clock)
@@ -383,6 +401,8 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
             GstState old_state, new_state, pending;
 
             gst_message_parse_state_changed( gstMessage, &old_state, &new_state, &pending );
+
+            debugPipelineToDot( this->getName() + " " + gst_element_state_get_name(old_state) + " - " + gst_element_state_get_name(new_state) );
 
             Pothos::ObjectKwargs objectMsgMap;
             objectMsgMap[ "old_state" ] = GstTypes::gcharToObject( gst_element_state_get_name( old_state ) );
@@ -746,6 +766,27 @@ int64_t GStreamer::getPipelineDuration(const std::string &format) const
     }
 }
 
+std::string GStreamer::getPipelineGraph()
+{
+    poco_information(GstTypes::logger(), "m_pipeline.get() = " + std::to_string( reinterpret_cast< uintptr_t>(m_pipeline.get()) ));
+    if (m_pipeline == nullptr)
+    {
+        throw Pothos::RuntimeException("GStreamer::createPipelineGraph", "Cant create pipeline graph when not running,");
+    }
+
+    return GstTypes::GCharPtr( gst_debug_bin_to_dot_data(GST_BIN( m_pipeline.get() ), PIPELINE_GRAPH_DETAILS) ).get();
+}
+
+void GStreamer::savePipelineGraph(const std::string &fileName)
+{
+    const auto pipelineGraph = getPipelineGraph();
+
+    std::ofstream dotFile;
+    dotFile.open( fileName, std::ios::out );
+    dotFile << pipelineGraph;
+    dotFile.close();
+}
+
 void GStreamer::gstChangeState( GstState state )
 {
     const std::string funcName( "GStreamer::gstChangeState()" );
@@ -767,7 +808,6 @@ void GStreamer::gstChangeState( GstState state )
             errorStr = "Change failure";
             break;
         case GST_STATE_CHANGE_SUCCESS:
-            //state_change_pipeline_to_dot_file( false );
             return;
         case GST_STATE_CHANGE_ASYNC:
             return;

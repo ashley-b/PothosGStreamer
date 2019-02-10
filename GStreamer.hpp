@@ -38,6 +38,7 @@ private:
     void createPipeline();
     void destroyPipeline();
     Pothos::ObjectKwargs gstMessageInfoWarnError( GstMessage *message );
+    void debugPipelineToDot(const std::string &fileName);
 
 public:
     GStreamer(const GStreamer&) = delete;
@@ -55,6 +56,8 @@ public:
     Pothos::Object getPipelineLatency() const;
     int64_t getPipelinePosition(const std::string &format) const;
     int64_t getPipelineDuration(const std::string &format) const;
+    std::string getPipelineGraph();
+    void savePipelineGraph(const std::string &fileName);
 
     void activate() override;
     void deactivate() override;
