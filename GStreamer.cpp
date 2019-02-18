@@ -18,7 +18,7 @@
  * Examples
  * <ul>
  *   <li>Passthrough with named input and output:<br>
- *     <code>appsrc name=in ! appsink name=out</code></li>
+ *     <code>appsrc name=in ! appsink name=out</code><br></li>
  *   <li>Example audio source with 1kHz sinewave, signed 8 bit, single channel at 44100 samples per second:<br>
  *     <code>audiotestsrc wave=sine freq=1000 ! audio/x-raw,format=S8,channels=1,rate=44100 ! appsink name=out</code></li>
  * </ul>
@@ -38,6 +38,27 @@
  * |option [Play] "PLAY"
  * |option [Pause] "PAUSE"
  * |preview disable
+ *
+ * <h2>Methods</h2>
+ * <ul>
+ *   <li><b>getPipelineString()</b><p style="margin-left:2.0em">Returns the current pipeline string.</p></li>
+ *   <li><b>setState(state)</b><p style="margin-left:2.0em">Changes the state of the pipeline. Can be "PLAY" or "PAUSE".</p></li>
+ *   <li><b>getPipeline()</b><p style="margin-left:2.0em">Returns a pointer to the current running GstPipeline.</p></li>
+ *   <li><b>getPipelineLatency()</b><p style="margin-left:2.0em">Returns the current pipeline latency in ns.</p></li>
+ *   <li><b>getPipelinePosition(format)</b><p style="margin-left:2.0em">Returns the position in the stream in a given format.<br>
+ *     If unknown it throws Pothos::PropertyNotSupportedException.<br>
+ *     <b>format</b> Can be "DEFAULT", "BYTES", "TIME", "BUFFERS" or "PERCENT"</p>
+ *   </li>
+ *   <li><b>getPipelineDuration(format)</b><p style="margin-left:2.0em">Return the stream duration in a given format.<br>
+ *     If unknown it throws Pothos::PropertyNotSupportedException.<br>
+ *     <b>format</b> Can be "DEFAULT", "BYTES", "TIME", "BUFFERS" or "PERCENT"</p>
+ *   </li>
+ *   <li><b>getPipelineGraph()</b><p style="margin-left:2.0em">Returns a graph of the pipeline and its state as a string in dot format used by <a href="https://www.graphviz.org">Graphviz</a>.</p></li>
+ *   <li><b>savePipelineGraph(fileName)</b><p style="margin-left:2.0em">Saves a graph of the GStreamer pipeline and its state in dot format to a given file.<br>
+ *     <b>fileName</b> File name to save the graph to in dot file format.
+ *     </p>
+ *   </li>
+ * </ul>
  *
  * |factory /media/gstreamer(pipelineString)
  * |setter setState(state)
