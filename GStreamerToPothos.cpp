@@ -21,18 +21,18 @@ namespace
         bool m_eosChanged;
         bool m_eos;
 
-        static void eos(GstAppSink */* appsink */, gpointer /* user_data */)
+        static void callBack_eos(GstAppSink */* appsink */, gpointer /* user_data */)
         {
         }
 
-        static GstFlowReturn new_preroll(GstAppSink */* appsink */, gpointer user_data)
+        static GstFlowReturn callBack_new_preroll(GstAppSink */* appsink */, gpointer user_data)
         {
             auto self = static_cast< GStreamerToPothosRunState* >(user_data);
             self->m_bufferCount++;
             return GST_FLOW_OK;
         }
 
-        static GstFlowReturn new_sample(GstAppSink */* appsink */, gpointer user_data)
+        static GstFlowReturn callBack_new_sample(GstAppSink */* appsink */, gpointer user_data)
         {
             auto self = static_cast< GStreamerToPothosRunState* >(user_data);
             self->m_bufferCount++;
@@ -131,9 +131,9 @@ namespace
             gst_app_sink_set_max_buffers(m_gstAppSink.get(), 20);
 
             GstAppSinkCallbacks gstAppSinkCallbacks{
-                &eos,
-                &new_preroll,
-                &new_sample,
+                &callBack_eos,
+                &callBack_new_preroll,
+                &callBack_new_sample,
                 { }
             };
             gst_app_sink_set_callbacks(
@@ -179,11 +179,11 @@ namespace
 
         GstSample* tryPullSample( GstClockTime timeout )
         {
-            const auto eos = ( gst_app_sink_is_eos( m_gstAppSink.get() ) == TRUE );
-            if (eos != m_eos)
+            const auto currentEos = ( gst_app_sink_is_eos( m_gstAppSink.get() ) == TRUE );
+            if (currentEos != m_eos)
             {
                 m_eosChanged = true;
-                m_eos = eos;
+                m_eos = currentEos;
             }
             GstSample *gstSample = gst_app_sink_try_pull_sample( m_gstAppSink.get(), timeout );
             if (gstSample != nullptr)
