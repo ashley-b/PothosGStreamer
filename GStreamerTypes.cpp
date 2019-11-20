@@ -328,7 +328,7 @@ namespace GstTypes
             return m_capsStr;
         }
 
-        bool change() noexcept
+        bool change() const noexcept
         {
             return m_change;
         }
