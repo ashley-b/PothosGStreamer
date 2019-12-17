@@ -680,10 +680,10 @@ void GStreamer::processGstMessagesTimeout(GstClockTime timeout)
 
 void GStreamer::setState(const std::string &state)
 {
-    static const std::array< std::pair< const char * const, GstState >, 2 > stateOptions =
+    static constexpr std::array< std::pair< const char * const, GstState >, 2 > stateOptions =
     { {
-        { "PLAY",  GST_STATE_PLAYING },
-        { "PAUSE", GST_STATE_PAUSED  }
+        { "PLAY"  , GST_STATE_PLAYING },
+        { "PAUSE" , GST_STATE_PAUSED  }
     } };
 
     try
@@ -739,13 +739,13 @@ Pothos::Object GStreamer::getPipelineLatency() const
     return Pothos::Object::make( args );
 }
 
-static const std::array< std::pair< const char * const, GstFormat >, 5 > formatOptions
+static constexpr std::array< std::pair< const char * const, GstFormat >, 5 > formatOptions
 { {
-    { "DEFAULT"  , GST_FORMAT_DEFAULT },
-    { "BYTES"    , GST_FORMAT_BYTES   },
-    { "TIME"     , GST_FORMAT_TIME    },
-    { "BUFFERS"  , GST_FORMAT_BUFFERS },
-    { "PERCENT"  , GST_FORMAT_PERCENT }
+    { "DEFAULT" , GST_FORMAT_DEFAULT },
+    { "BYTES"   , GST_FORMAT_BYTES   },
+    { "TIME"    , GST_FORMAT_TIME    },
+    { "BUFFERS" , GST_FORMAT_BUFFERS },
+    { "PERCENT" , GST_FORMAT_PERCENT }
 } };
 
 int64_t GStreamer::getPipelinePosition(const std::string &format) const
