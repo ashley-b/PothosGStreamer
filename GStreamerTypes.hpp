@@ -45,7 +45,8 @@ namespace GstTypes
         return static_cast< typename std::underlying_type< T >::type >( e );
     }
 
-    namespace detail {
+    namespace detail
+    {
         template< typename T, void(*Fn)(T*) >
         struct Deleter
         {
@@ -231,7 +232,7 @@ namespace GstTypes
               typename Pair = typename std::iterator_traits< InputIterator >::value_type,
               typename Key = typename Pair::first_type,
               typename Value = typename Pair::second_type
-              >
+            >
     Value findValueByKey(InputIterator first, InputIterator last, const Key key)
     {
         const auto result = std::find_if(first, last, [ &key ](const Pair& p) { return p.first == key; });

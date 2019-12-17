@@ -47,8 +47,8 @@ namespace GstTypes
         return _logger;
     }
 
-    namespace detail {
-
+    namespace detail
+    {
         // Wraper around gst_buffer_unref as its static inline and will
         // cause linker error if we try and link directly to it.
         void gstBufferUnref(GstBuffer* gstBuffer) noexcept
