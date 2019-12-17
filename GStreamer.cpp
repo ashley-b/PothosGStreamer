@@ -713,7 +713,7 @@ GstPipeline* GStreamer::getPipeline() const
     return m_pipeline.get();
 }
 
-inline Pothos::Object GstClockTimeToObject(const GstClockTime gstClockTime)
+static inline Pothos::Object gstClockTimeToObject(const GstClockTime gstClockTime)
 {
     return (gstClockTime == GST_CLOCK_TIME_NONE) ? Pothos::Object() : Pothos::Object(gstClockTime);
 }
@@ -734,8 +734,8 @@ Pothos::Object GStreamer::getPipelineLatency() const
 
     Pothos::ObjectKwargs args;
     args["live"       ] = Pothos::Object( static_cast< bool >( live ) );
-    args["min_latency"] = GstClockTimeToObject( min_latency );
-    args["max_latency"] = GstClockTimeToObject( max_latency );
+    args["min_latency"] = gstClockTimeToObject( min_latency );
+    args["max_latency"] = gstClockTimeToObject( max_latency );
     return Pothos::Object::make( args );
 }
 
