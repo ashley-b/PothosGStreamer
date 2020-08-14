@@ -531,10 +531,10 @@ Pothos::ObjectKwargs GStreamer::gstMessageToFormattedObject(GstMessage *gstMessa
             const gchar *property_name;
             const GValue *property_value;
             gst_message_parse_property_notify(
-                gstMessage,
-                &object,
-                &property_name,
-                &property_value
+                /*message       =*/ gstMessage,
+                /*object        =*/ &object,
+                /*property_name =*/ &property_name,
+                /*property_value=*/ &property_value
             );
 
             Pothos::ObjectKwargs objectMsgMap;

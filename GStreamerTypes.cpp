@@ -152,25 +152,32 @@ namespace GstTypes
 
     static void gDestroyNotifySharedVoid(gpointer data)
     {
-        auto container = static_cast< std::shared_ptr< void >* >(data);
+        auto * container = static_cast< std::shared_ptr< void >* >(data);
+
+        // We manualy delete this object which was hanging off GstBuffer
+        // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
         delete container;
     }
 
     GstBufferPtr makeSharedGstBuffer(const void *data, size_t size, std::shared_ptr< void > container)
     {
         // Make copy of container
-        auto userData = static_cast< gpointer >( new std::shared_ptr< void >( std::move( container ) ) );
+        auto * const userData = static_cast< gpointer >( new std::shared_ptr< void >( std::move( container ) ) );
+
         // Its ok to cast away the const as we create this buffer readonly
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+        auto * const mutableData = const_cast< gpointer >( data );
+
         return
             GstBufferPtr(
                 gst_buffer_new_wrapped_full(
-                    GST_MEMORY_FLAG_READONLY,        // GstMemoryFlags flags
-                    const_cast< gpointer >( data ),  // gpointer data
-                    size,                            // gsize maxsize
-                    0,                               // gsize offset
-                    size,                            // gsize size
-                    userData,                        // gpointer user_data
-                    &gDestroyNotifySharedVoid        // GDestroyNotify notify
+                    /*flags    =*/ GST_MEMORY_FLAG_READONLY,
+                    /*data     =*/ mutableData,
+                    /*maxsize  =*/ size,
+                    /*offset   =*/ 0,
+                    /*size     =*/ size,
+                    /*user_data=*/ userData,
+                    /*notify   =*/ &gDestroyNotifySharedVoid
                 )
             );
     }
