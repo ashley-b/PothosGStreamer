@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2019 Ashley Brighthope
+/// Copyright (c) 2017-2020 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 /***********************************************************************
@@ -821,11 +821,15 @@ void GStreamer::gstChangeState( GstState state )
     //   Should we safe guard our selfs from this or just let it crash Pothos ?????
     const auto stateChangeReturn = gst_element_set_state( GST_ELEMENT( m_pipeline.get() ), state );
 
-    std::string errorStr;
+    auto throwError = [funcName](const std::string& errorStr)
+    {
+      throw Pothos::RuntimeException( funcName, "GStreamer state change error: " + errorStr );
+    };
+
     switch ( stateChangeReturn )
     {
         case GST_STATE_CHANGE_FAILURE:
-            errorStr = "Change failure";
+            throwError("State change failure");
             break;
         case GST_STATE_CHANGE_SUCCESS:
             return;
@@ -842,12 +846,8 @@ void GStreamer::gstChangeState( GstState state )
                 GstTypes::logger(),
                 funcName + " Current state: " + gst_element_state_get_name( state ) + " . Pipeline: " + getPipelineString() );
             return;
-        default:
-            errorStr = gst_element_state_change_return_get_name( stateChangeReturn );
-            break;
     }
-
-    throw Pothos::RuntimeException( funcName, "GStreamer state change error: " + errorStr );
+    throwError(gst_element_state_change_return_get_name( stateChangeReturn ));
 }
 
 void GStreamer::activate()
