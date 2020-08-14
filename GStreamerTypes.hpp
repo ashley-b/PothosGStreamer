@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2019 Ashley Brighthope
+/// Copyright (c) 2017-2020 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 #pragma once
@@ -25,7 +25,6 @@ namespace GstTypes
     extern const char PACKET_META_INFO[];
     extern const char PACKET_META_CAPS[];
 
-    extern const char PACKET_META_TIMESTAMP[];
     extern const char PACKET_META_PTS[];
     extern const char PACKET_META_DTS[];
     extern const char PACKET_META_FLAGS[];

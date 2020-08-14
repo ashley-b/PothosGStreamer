@@ -1,4 +1,4 @@
-/// Copyright (c) 2017-2019 Ashley Brighthope
+/// Copyright (c) 2017-2020 Ashley Brighthope
 /// SPDX-License-Identifier: BSL-1.0
 
 #include "GStreamerTypes.hpp"
@@ -33,7 +33,6 @@ namespace GstTypes
     const char PACKET_META_INFO      []{ "info"       };
     const char PACKET_META_CAPS      []{ "caps"       };
 
-    const char PACKET_META_TIMESTAMP []{ "timestamp"  };
     const char PACKET_META_PTS       []{ "pts"        };
     const char PACKET_META_DTS       []{ "dts"        };
     const char PACKET_META_FLAGS     []{ "flags"      };
@@ -194,12 +193,12 @@ namespace GstTypes
             return {};
         }
 
-        ifKeyExtract( packet.metadata, PACKET_META_TIMESTAMP , GST_BUFFER_TIMESTAMP ( gstBuffer.get() ) );
-        ifKeyExtract( packet.metadata, PACKET_META_PTS       , GST_BUFFER_PTS       ( gstBuffer.get() ) );
-        ifKeyExtract( packet.metadata, PACKET_META_DTS       , GST_BUFFER_DTS       ( gstBuffer.get() ) );
-        ifKeyExtract( packet.metadata, PACKET_META_DURATION  , GST_BUFFER_DURATION  ( gstBuffer.get() ) );
-        ifKeyExtract( packet.metadata, PACKET_META_OFFSET    , GST_BUFFER_OFFSET    ( gstBuffer.get() ) );
-        ifKeyExtract( packet.metadata, PACKET_META_OFFSET_END, GST_BUFFER_OFFSET_END( gstBuffer.get() ) );
+        auto * const gstBufferPtr = gstBuffer.get();
+        ifKeyExtract( packet.metadata, PACKET_META_PTS       , GST_BUFFER_PTS       ( gstBufferPtr ) );
+        ifKeyExtract( packet.metadata, PACKET_META_DTS       , GST_BUFFER_DTS       ( gstBufferPtr ) );
+        ifKeyExtract( packet.metadata, PACKET_META_DURATION  , GST_BUFFER_DURATION  ( gstBufferPtr ) );
+        ifKeyExtract( packet.metadata, PACKET_META_OFFSET    , GST_BUFFER_OFFSET    ( gstBufferPtr ) );
+        ifKeyExtract( packet.metadata, PACKET_META_OFFSET_END, GST_BUFFER_OFFSET_END( gstBufferPtr ) );
 
         // Try to convert buffer flags back into GStreamer buffer flags
         const auto meta_flags_args_result = ifKeyExtract< Pothos::ObjectKwargs >( packet.metadata, PACKET_META_FLAGS );
@@ -222,7 +221,7 @@ namespace GstTypes
                 const auto result = ifKeyExtract< bool >( flags_args, flag.first );
                 if ( result.isSpecified() )
                 {
-                    ( result.value() ) ? GST_BUFFER_FLAG_SET(gstBuffer.get(), flag.second) : GST_BUFFER_FLAG_UNSET(gstBuffer.get(), flag.second);
+                    ( result.value() ) ? GST_BUFFER_FLAG_SET(gstBufferPtr, flag.second) : GST_BUFFER_FLAG_UNSET(gstBufferPtr, flag.second);
                 }
             }
         }
@@ -397,12 +396,7 @@ namespace GstTypes
 
         packet.payload = Pothos::BufferChunk( GstBufferMap::makeSharedReadBuffer( gstBuffer ) );
 
-        if ( GST_BUFFER_TIMESTAMP_IS_VALID( gstBuffer ) )
-        {
-            const auto timeStamp = GST_BUFFER_TIMESTAMP( gstBuffer );
-            packet.metadata[ PACKET_META_TIMESTAMP ] = Pothos::Object( timeStamp );
-            packet.labels.push_back( Pothos::Label( PACKET_META_TIMESTAMP, timeStamp, 0) );
-        }
+        const auto payloadElements = packet.payload.elements();
 
         // The duration in nanoseconds
         if ( GST_BUFFER_DURATION_IS_VALID( gstBuffer ) )
@@ -413,35 +407,45 @@ namespace GstTypes
         // The presentation time stamp (pts) in nanoseconds
         if ( GST_BUFFER_PTS_IS_VALID( gstBuffer ) )
         {
-            packet.metadata[ PACKET_META_PTS ] = Pothos::Object( GST_BUFFER_PTS( gstBuffer ) );
+            const auto pts = Pothos::Object( GST_BUFFER_PTS( gstBuffer ) );
+            packet.metadata[ PACKET_META_PTS ] = pts;
+            if (payloadElements > 0)
+            {
+              packet.labels.emplace_back(PACKET_META_PTS, pts, 0);
+            }
         }
 
         // The decoding time stamp (dts) in nanoseconds
         if ( GST_BUFFER_DTS_IS_VALID( gstBuffer ) )
         {
-            packet.metadata[ PACKET_META_DTS ] = Pothos::Object( GST_BUFFER_DTS( gstBuffer ) );
+            const auto dts = Pothos::Object( GST_BUFFER_DTS( gstBuffer ) );
+            packet.metadata[ PACKET_META_DTS ] = dts;
+            if (payloadElements > 0)
+            {
+              packet.labels.emplace_back(PACKET_META_PTS, dts, 0);
+            }
         }
 
         // The offset in the source file of the beginning of this buffer.
         if ( GST_BUFFER_OFFSET_IS_VALID( gstBuffer ) )
         {
-            const auto bufferOffset = GST_BUFFER_OFFSET( gstBuffer );
-            packet.metadata[ PACKET_META_OFFSET ] = Pothos::Object( bufferOffset );
-            packet.labels.push_back( Pothos::Label( PACKET_META_OFFSET, bufferOffset, 0) );
+            const auto offset = Pothos::Object( GST_BUFFER_OFFSET( gstBuffer ) );
+            packet.metadata[ PACKET_META_OFFSET ] = offset;
+            if (payloadElements > 0)
+            {
+                packet.labels.emplace_back(PACKET_META_OFFSET, offset, 0);
+            }
         }
 
         // The offset in the source file of the end of this buffer.
         if ( GST_BUFFER_OFFSET_END_IS_VALID( gstBuffer ) )
         {
-            const auto bufferOffsetEnd = GST_BUFFER_OFFSET_END( gstBuffer );
-            packet.metadata[ PACKET_META_OFFSET_END ] = Pothos::Object( bufferOffsetEnd );
-
-            auto endPacketOffset = packet.payload.elements();
-            if (endPacketOffset > 0)
+            const auto offsetEnd = Pothos::Object( GST_BUFFER_OFFSET_END( gstBuffer ) );
+            packet.metadata[ PACKET_META_OFFSET_END ] = offsetEnd;
+            if (payloadElements > 0)
             {
-                --endPacketOffset;
+                packet.labels.emplace_back(PACKET_META_OFFSET_END, offsetEnd, (payloadElements - 1) );
             }
-            packet.labels.push_back( Pothos::Label( PACKET_META_OFFSET_END, bufferOffsetEnd, endPacketOffset ) );
         }
 
         // Handle GST_BUFFER_FLAGS
