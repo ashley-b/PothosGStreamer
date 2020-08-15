@@ -698,9 +698,8 @@ namespace GstTypes
             {
                 auto object = g_value_get_object( gvalue );
                 Pothos::ObjectKwargs objectArgs;
-                objectArgs[ "type"      ] = Pothos::Object( "object" );
+                objectArgs[ "type"      ] = Pothos::Object( "gobject" );
                 objectArgs[ "className" ] = Pothos::Object( G_OBJECT_TYPE_NAME( object ) );
-                objectArgs[ "object"    ] = Pothos::Object( reinterpret_cast< std::intptr_t >( object ) );
                 return Pothos::Object::make( objectArgs );
             }
         }
