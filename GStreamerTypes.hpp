@@ -244,7 +244,7 @@ namespace GstTypes
             [ ](std::string s, const Pair& p) {
                 s += p.first;
                 if ( !s.empty() ) s += ", ";
-                return std::move( s );
+                return s;
             }
         );
         // Throw if we can't find key.

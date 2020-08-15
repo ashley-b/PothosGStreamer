@@ -832,7 +832,6 @@ void GStreamer::gstChangeState( GstState state )
             throwError("State change failure");
             break;
         case GST_STATE_CHANGE_SUCCESS:
-            return;
         case GST_STATE_CHANGE_ASYNC:
             return;
         case GST_STATE_CHANGE_NO_PREROLL:
